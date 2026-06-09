@@ -1,24 +1,31 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { useTheme } from "../context/ThemeContext";
+import { useThemeStyles } from "../theme/useThemeStyles";
 
 export default function HomeScreen({ navigation }: any) {
-    const { theme } = useTheme();
-    const isDark = theme === "dark";
+    const { colors } = useThemeStyles();
 
     return (
         <View
             style={[
                 styles.container,
-                isDark ? styles.darkBg : styles.lightBg,
+                { backgroundColor: colors.background },
             ]}
         >
-            <Text style={[styles.title, isDark && styles.darkText]}>
+            <Text
+                style={[
+                    styles.title,
+                    { color: colors.text },
+                ]}
+            >
                 ♟ ThinkMate Chess
             </Text>
 
             <TouchableOpacity
-                style={styles.button}
+                style={[
+                    styles.button,
+                    { backgroundColor: colors.accent },
+                ]}
                 onPress={() => navigation.navigate("Game")}
             >
                 <Text style={styles.buttonText}>Play</Text>
@@ -34,26 +41,13 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
 
-    lightBg: {
-        backgroundColor: "#ffffff",
-    },
-
-    darkBg: {
-        backgroundColor: "#121212",
-    },
-
     title: {
         fontSize: 26,
         fontWeight: "bold",
         marginBottom: 20,
     },
 
-    darkText: {
-        color: "#ffffff",
-    },
-
     button: {
-        backgroundColor: "#2e7d32",
         padding: 14,
         borderRadius: 10,
     },
@@ -61,5 +55,6 @@ const styles = StyleSheet.create({
     buttonText: {
         color: "white",
         fontSize: 18,
+        fontWeight: "bold",
     },
 });
