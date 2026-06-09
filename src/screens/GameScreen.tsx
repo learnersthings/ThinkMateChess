@@ -11,8 +11,12 @@ import {
 } from "../game/engine";
 
 import { toSquare } from "../game/square";
+import { useTheme } from "../context/ThemeContext";
 
 export default function GameScreen() {
+    const { theme } = useTheme();
+    const isDark = theme === "dark";
+
     const [board, setBoard] = useState(getBoard());
     const [selected, setSelected] = useState<string | null>(null);
     const [legalMoves, setLegalMoves] = useState<string[]>([]);
@@ -22,7 +26,6 @@ export default function GameScreen() {
         setBoard([...getBoard()]);
     };
 
-    // reset when screen opens
     useFocusEffect(
         useCallback(() => {
             resetGame();
@@ -38,7 +41,6 @@ export default function GameScreen() {
         const piece = board[row][col];
         const turn = getTurn();
 
-        // SELECT
         if (!selected) {
             if (!piece) return;
             if (piece.color !== turn) return;
@@ -49,14 +51,12 @@ export default function GameScreen() {
             return;
         }
 
-        // UNSELECT
         if (selected === square) {
             setSelected(null);
             setLegalMoves([]);
             return;
         }
 
-        // SWITCH SELECTION
         if (piece && piece.color === turn) {
             setSelected(square);
             setLegalMoves(getLegalMoves(square).map((m) => m.to));
@@ -64,7 +64,6 @@ export default function GameScreen() {
             return;
         }
 
-        // MOVE
         const result = makeMove(selected, square);
 
         if (result.isValid) {
@@ -79,9 +78,19 @@ export default function GameScreen() {
     };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>♟ ThinkMate Chess</Text>
-            <Text style={styles.status}>{status}</Text>
+        <View
+            style={[
+                styles.container,
+                isDark ? styles.darkBg : styles.lightBg,
+            ]}
+        >
+            <Text style={[styles.title, isDark && styles.darkText]}>
+                ♟ ThinkMate Chess
+            </Text>
+
+            <Text style={[styles.status, isDark && styles.darkText]}>
+                {status}
+            </Text>
 
             {board.map((row, i) => (
                 <View key={i} style={styles.row}>
@@ -95,18 +104,29 @@ export default function GameScreen() {
                         const isSelected = selected === sq;
                         const isLegal = legalMoves.includes(sq);
 
+                        const isLightSquare = (i + j) % 2 === 0;
+
                         return (
                             <TouchableOpacity
                                 key={j}
                                 style={[
                                     styles.square,
-                                    (i + j) % 2 === 0 ? styles.light : styles.dark,
+                                    isLightSquare
+                                        ? isDark
+                                            ? styles.darkLightSquare
+                                            : styles.lightSquare
+                                        : isDark
+                                            ? styles.darkDarkSquare
+                                            : styles.darkSquare,
+
                                     isSelected && styles.selected,
                                     isLegal && styles.legal,
                                 ]}
                                 onPress={() => handlePress(i, j)}
                             >
-                                <Text style={styles.piece}>{piece}</Text>
+                                <Text style={styles.piece}>
+                                    {piece}
+                                </Text>
                             </TouchableOpacity>
                         );
                     })}
@@ -122,36 +142,65 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
     },
+
+    lightBg: {
+        backgroundColor: "#ffffff",
+    },
+
+    darkBg: {
+        backgroundColor: "#121212",
+    },
+
     title: {
         fontSize: 22,
         fontWeight: "bold",
         marginBottom: 8,
     },
+
     status: {
         marginBottom: 10,
     },
+
+    darkText: {
+        color: "#ffffff",
+    },
+
     row: {
         flexDirection: "row",
     },
+
     square: {
         width: 45,
         height: 45,
         justifyContent: "center",
         alignItems: "center",
     },
-    light: {
+
+    lightSquare: {
         backgroundColor: "#f0d9b5",
     },
-    dark: {
+
+    darkSquare: {
         backgroundColor: "#b58863",
     },
+
+    darkLightSquare: {
+        backgroundColor: "#2a2a2a",
+    },
+
+    darkDarkSquare: {
+        backgroundColor: "#444444",
+    },
+
     selected: {
         borderWidth: 2,
-        borderColor: "blue",
+        borderColor: "#2e7d32",
     },
+
     legal: {
         backgroundColor: "rgba(0,255,0,0.25)",
     },
+
     piece: {
         fontSize: 18,
     },
