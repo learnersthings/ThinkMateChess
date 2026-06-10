@@ -1,19 +1,22 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
 import { useTheme } from "../context/ThemeContext";
+import { useGameSettings, PieceStyle } from "../context/GameSettingsContext";
 
 export default function SettingsScreen() {
     const [mode, setMode] = useState<"single" | "two">("two");
     const { theme, toggleTheme } = useTheme();
+    const { pieceStyle, setPieceStyle } = useGameSettings();
 
     const isDark = theme === "dark";
 
     return (
-        <View
+        <ScrollView
             style={[
                 styles.container,
                 isDark ? styles.darkBg : styles.lightBg,
             ]}
+            contentContainerStyle={styles.contentContainer}
         >
             <Text
                 style={[
@@ -33,6 +36,8 @@ export default function SettingsScreen() {
                     Switch to {isDark ? "Light" : "Dark"} Mode
                 </Text>
             </TouchableOpacity>
+
+            <Text style={[styles.sectionTitle, isDark && styles.darkText]}>Game Mode</Text>
 
             {/* GAME MODE: SINGLE */}
             <TouchableOpacity
@@ -62,6 +67,24 @@ export default function SettingsScreen() {
                 </Text>
             </TouchableOpacity>
 
+            <Text style={[styles.sectionTitle, isDark && styles.darkText, { marginTop: 20 }]}>Piece Style</Text>
+            
+            {(["symbol", "3d", "crystal", "glass"] as PieceStyle[]).map((style) => (
+                <TouchableOpacity
+                    key={style}
+                    style={[
+                        styles.option,
+                        pieceStyle === style && styles.selected,
+                        isDark && styles.optionDark,
+                    ]}
+                    onPress={() => setPieceStyle(style)}
+                >
+                    <Text style={isDark && styles.darkText}>
+                        {style.charAt(0).toUpperCase() + style.slice(1)}
+                    </Text>
+                </TouchableOpacity>
+            ))}
+
             <Text
                 style={[
                     styles.status,
@@ -70,14 +93,16 @@ export default function SettingsScreen() {
             >
                 Current Mode: {mode}
             </Text>
-        </View>
+        </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: "center",
+    },
+    contentContainer: {
+        paddingVertical: 40,
         alignItems: "center",
     },
 
@@ -93,6 +118,13 @@ const styles = StyleSheet.create({
         fontSize: 22,
         fontWeight: "bold",
         marginBottom: 20,
+    },
+
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: "bold",
+        marginBottom: 10,
+        marginTop: 10,
     },
 
     darkText: {

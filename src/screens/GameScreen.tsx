@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 
 import {
@@ -14,9 +14,12 @@ import { toSquare } from "../game/square";
 import { useThemeStyles } from "../theme/useThemeStyles";
 
 import { getPieceSymbol } from "../game/pieces";
+import { useGameSettings } from "../context/GameSettingsContext";
+import { getPieceAssetSource } from "../game/pieceAssets";
 
 export default function GameScreen() {
     const { colors } = useThemeStyles();
+    const { pieceStyle } = useGameSettings();
 
     const [board, setBoard] = useState(getBoard());
     const [selected, setSelected] = useState<string | null>(null);
@@ -121,9 +124,37 @@ export default function GameScreen() {
                         {row.map((square, j) => {
                             const sq = toSquare(j, i);
 
-                            const piece = square?.type
-                                ? getPieceSymbol(`${square.color}${square.type}`)
-                                : "";
+                            let pieceContent = null;
+                            if (square?.type) {
+                                if (pieceStyle === "symbol") {
+                                    const symbol = getPieceSymbol(`${square.color}${square.type}`);
+                                    pieceContent = (
+                                        <Text
+                                            style={[
+                                                styles.piece,
+                                                {
+                                                    color: isLightSquare(i, j)
+                                                        ? colors.customLightText
+                                                        : colors.customDarkText,
+                                                },
+                                            ]}
+                                        >
+                                            {symbol}
+                                        </Text>
+                                    );
+                                } else {
+                                    const assetSource = getPieceAssetSource(square.color, square.type, pieceStyle);
+                                    if (assetSource) {
+                                        pieceContent = (
+                                            <Image 
+                                                source={assetSource} 
+                                                style={styles.pieceImage} 
+                                                resizeMode="contain"
+                                            />
+                                        );
+                                    }
+                                }
+                            }
 
                             const selectedStyle = selected === sq;
                             const legal = isLegalMove(sq);
@@ -155,18 +186,7 @@ export default function GameScreen() {
                                         },
                                     ]}
                                 >
-                                    <Text
-                                        style={[
-                                            styles.piece,
-                                            {
-                                                color: isLightSquare(i, j)
-                                                    ? colors.customLightText
-                                                    : colors.customDarkText,
-                                            },
-                                        ]}
-                                    >
-                                        {piece}
-                                    </Text>
+                                    {pieceContent}
 
                                     {/* LEGAL MOVE DOT */}
                                     {legal && !square?.type && (
@@ -226,5 +246,10 @@ const styles = StyleSheet.create({
 
     piece: {
         fontSize: 28,
+    },
+
+    pieceImage: {
+        width: 34,
+        height: 34,
     },
 });
