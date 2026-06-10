@@ -243,7 +243,7 @@ export default function GameScreen() {
 
             {/* Status text positioned absolutely at the top so it doesn't affect the exact centering of the board */}
             <View style={{ position: "absolute", top: 50, width: "100%", alignItems: "center", zIndex: 10 }}>
-                <Text style={[styles.status, { color: colors.text }]}>
+                <Text style={[styles.status, { color: colors.customBackgroundText }]}>
                     {status}
                 </Text>
 

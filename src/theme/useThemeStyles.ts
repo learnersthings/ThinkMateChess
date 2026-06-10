@@ -28,9 +28,9 @@ export function useThemeStyles() {
                 return { lightSquare: "#f4dbce", darkSquare: "#b84b4b" };
             case "symbol":
             default:
-                return { 
-                    lightSquare: isDark ? "#ffffff" : "#ffffff", 
-                    darkSquare: isDark ? "#000000" : "#000000" 
+                return {
+                    lightSquare: isDark ? "#ffffff" : "#ffffff",
+                    darkSquare: isDark ? "#000000" : "#000000"
                 };
         }
     };
@@ -43,7 +43,8 @@ export function useThemeStyles() {
             background: isDark ? "#121212" : "#ffffff",
             text: isDark ? "#ffffff" : "#000000",
 
-            customBackground: isDark ? "#444444" : "#949494",
+            customBackground: "#2D3909", // A rich dark slate that looks premium in both modes
+            customBackgroundText: "#FFFFFF",
             customLightText: "#000000",
             customDarkText: "#ffffff",
 
