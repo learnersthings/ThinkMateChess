@@ -236,11 +236,16 @@ export default function GameScreen() {
                     {status}
                 </Text>
 
-                {gameMode === "single" && (
-                    <TouchableOpacity onPress={handleUndo} style={styles.undoButton}>
-                        <Text style={styles.undoText}>Undo</Text>
+                <View style={styles.topControls}>
+                    {gameMode === "single" && (
+                        <TouchableOpacity onPress={handleUndo} style={styles.controlButton}>
+                            <Text style={styles.controlText}>Undo</Text>
+                        </TouchableOpacity>
+                    )}
+                    <TouchableOpacity onPress={handleReset} style={styles.controlButton}>
+                        <Text style={styles.controlText}>Restart</Text>
                     </TouchableOpacity>
-                )}
+                </View>
             </View>
 
             {/* The board sits perfectly in the center of the container's flex: 1 space, shifted slightly up to optically balance with bottom tabs */}
@@ -406,14 +411,19 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
 
-    undoButton: {
+    topControls: {
+        flexDirection: "row",
+        gap: 10,
+    },
+
+    controlButton: {
         paddingHorizontal: 16,
         paddingVertical: 6,
         backgroundColor: "#666",
         borderRadius: 20,
     },
 
-    undoText: {
+    controlText: {
         color: "white",
         fontWeight: "bold",
         fontSize: 14,
