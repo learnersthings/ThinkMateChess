@@ -24,6 +24,7 @@ import { useThemeStyles } from "../theme/useThemeStyles";
 import { getPieceSymbol } from "../game/pieces";
 import { useGameSettings } from "../context/GameSettingsContext";
 import { getPieceAssetSource } from "../game/pieceAssets";
+import { playSound } from "../game/sounds";
 
 export default function GameScreen() {
     const { colors, getBoardColors } = useThemeStyles();
@@ -132,6 +133,17 @@ export default function GameScreen() {
                             from: result.move.from,
                             to: result.move.to,
                         });
+                        
+                        if (isGameOver()) {
+                            playSound('gameover');
+                        } else if (isCheck()) {
+                            playSound('check');
+                        } else if (result.move.captured) {
+                            playSound('capture');
+                        } else {
+                            playSound('move');
+                        }
+
                         updateGameStatus();
                     }
                 }, 500);
@@ -173,6 +185,17 @@ export default function GameScreen() {
                 from,
                 to,
             });
+
+            if (isGameOver()) {
+                playSound('gameover');
+            } else if (isCheck()) {
+                playSound('check');
+            } else if (result.move.captured) {
+                playSound('capture');
+            } else {
+                playSound('move');
+            }
+
             updateGameStatus();
         }
 
