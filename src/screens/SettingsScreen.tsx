@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Switch } from "react-native";
 import { useTheme } from "../context/ThemeContext";
 import { useGameSettings, PieceStyle } from "../context/GameSettingsContext";
 
@@ -28,71 +28,47 @@ export default function SettingsScreen() {
             </Text>
 
             {/* THEME TOGGLE */}
-            <TouchableOpacity
-                style={styles.themeButton}
-                onPress={toggleTheme}
-            >
-                <Text style={styles.buttonText}>
-                    Switch to {isDark ? "Light" : "Dark"} Mode
-                </Text>
-            </TouchableOpacity>
+            <View style={styles.toggleRow}>
+                <Text style={[styles.toggleLabel, isDark && styles.darkText]}>Dark Mode</Text>
+                <Switch
+                    value={isDark}
+                    onValueChange={toggleTheme}
+                    trackColor={{ false: "#767577", true: "#2e7d32" }}
+                    thumbColor={isDark ? "#ffffff" : "#f4f3f4"}
+                />
+            </View>
 
-            <Text style={[styles.sectionTitle, isDark && styles.darkText]}>Game Mode</Text>
-
-            {/* GAME MODE: SINGLE */}
-            <TouchableOpacity
-                style={[
-                    styles.option,
-                    mode === "single" && styles.selected,
-                    isDark && styles.optionDark,
-                ]}
-                onPress={() => setMode("single")}
-            >
-                <Text style={isDark && styles.darkText}>
-                    Single Player
-                </Text>
-            </TouchableOpacity>
-
-            {/* GAME MODE: TWO PLAYER */}
-            <TouchableOpacity
-                style={[
-                    styles.option,
-                    mode === "two" && styles.selected,
-                    isDark && styles.optionDark,
-                ]}
-                onPress={() => setMode("two")}
-            >
-                <Text style={isDark && styles.darkText}>
-                    Two Player
-                </Text>
-            </TouchableOpacity>
+            {/* GAME MODE TOGGLE */}
+            <View style={styles.toggleRow}>
+                <Text style={[styles.toggleLabel, isDark && styles.darkText]}>Two Player Mode</Text>
+                <Switch
+                    value={mode === "two"}
+                    onValueChange={(val) => setMode(val ? "two" : "single")}
+                    trackColor={{ false: "#767577", true: "#2e7d32" }}
+                    thumbColor={mode === "two" ? "#ffffff" : "#f4f3f4"}
+                />
+            </View>
 
             <Text style={[styles.sectionTitle, isDark && styles.darkText, { marginTop: 20 }]}>Piece Style</Text>
-            
-            {(["symbol", "3d", "crystal", "glass", "wooden", "staunton", "california", "merida", "uscf", "cardinal"] as PieceStyle[]).map((style) => (
-                <TouchableOpacity
-                    key={style}
-                    style={[
-                        styles.option,
-                        pieceStyle === style && styles.selected,
-                        isDark && styles.optionDark,
-                    ]}
-                    onPress={() => setPieceStyle(style)}
-                >
-                    <Text style={isDark && styles.darkText}>
-                        {style.charAt(0).toUpperCase() + style.slice(1)}
-                    </Text>
-                </TouchableOpacity>
-            ))}
 
-            <Text
-                style={[
-                    styles.status,
-                    isDark && styles.darkText,
-                ]}
-            >
-                Current Mode: {mode}
-            </Text>
+            <View style={styles.pieceStyleGrid}>
+                {(["symbol", "3d", "crystal", "glass", "wooden", "staunton", "california", "merida", "uscf", "cardinal"] as PieceStyle[]).map((style) => (
+                    <TouchableOpacity
+                        key={style}
+                        style={[
+                            styles.gridOption,
+                            pieceStyle === style && styles.selected,
+                            isDark && styles.optionDark,
+                        ]}
+                        onPress={() => setPieceStyle(style)}
+                    >
+                        <Text style={[isDark && styles.darkText, { fontSize: 13 }]} numberOfLines={1} adjustsFontSizeToFit>
+                            {style === "3d" ? "3D" : style === "uscf" ? "USCF" : style.charAt(0).toUpperCase() + style.slice(1)}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
+            </View>
+
         </ScrollView>
     );
 }
@@ -140,6 +116,39 @@ const styles = StyleSheet.create({
         borderRadius: 8,
     },
 
+    toggleRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        width: "80%",
+        paddingVertical: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: "#555",
+    },
+
+    toggleLabel: {
+        fontSize: 18,
+        fontWeight: "500",
+    },
+
+    pieceStyleGrid: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        justifyContent: "center",
+        width: "90%",
+        gap: 10,
+        marginTop: 10,
+    },
+
+    gridOption: {
+        width: "30%",
+        paddingVertical: 12,
+        backgroundColor: "#ddd",
+        alignItems: "center",
+        justifyContent: "center",
+        borderRadius: 8,
+    },
+
     optionDark: {
         backgroundColor: "#333",
     },
@@ -147,22 +156,5 @@ const styles = StyleSheet.create({
     selected: {
         borderWidth: 2,
         borderColor: "#2e7d32",
-    },
-
-    status: {
-        marginTop: 20,
-        fontSize: 16,
-    },
-
-    themeButton: {
-        padding: 12,
-        backgroundColor: "#2e7d32",
-        borderRadius: 8,
-        marginBottom: 20,
-    },
-
-    buttonText: {
-        color: "white",
-        fontWeight: "bold",
     },
 });
