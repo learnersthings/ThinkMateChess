@@ -1,6 +1,6 @@
 import React, { createContext, useState, useContext, ReactNode } from "react";
 
-export type PieceStyle = "symbol" | "3d" | "crystal" | "glass";
+export type PieceStyle = "symbol" | "3d" | "crystal" | "glass" | "wooden" | "staunton" | "california" | "merida" | "uscf" | "cardinal";
 
 interface GameSettingsContextType {
     pieceStyle: PieceStyle;

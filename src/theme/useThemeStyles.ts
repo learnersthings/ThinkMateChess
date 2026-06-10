@@ -14,6 +14,18 @@ export function useThemeStyles() {
                 return { lightSquare: "#e0f7fa", darkSquare: "#00838f" }; // Ice theme for crystal
             case "glass":
                 return { lightSquare: "#e0e0e0", darkSquare: "#616161" }; // Sleek gray for glass
+            case "wooden":
+                return { lightSquare: "#f0d9b5", darkSquare: "#b58863" };
+            case "staunton":
+                return { lightSquare: "#e9edcc", darkSquare: "#779556" };
+            case "california":
+                return { lightSquare: "#e0c294", darkSquare: "#86a666" };
+            case "merida":
+                return { lightSquare: "#dcdcdc", darkSquare: "#949494" };
+            case "uscf":
+                return { lightSquare: "#c8d8e4", darkSquare: "#2b5876" };
+            case "cardinal":
+                return { lightSquare: "#f4dbce", darkSquare: "#b84b4b" };
             case "symbol":
             default:
                 return { 

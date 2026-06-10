@@ -69,7 +69,7 @@ export default function SettingsScreen() {
 
             <Text style={[styles.sectionTitle, isDark && styles.darkText, { marginTop: 20 }]}>Piece Style</Text>
             
-            {(["symbol", "3d", "crystal", "glass"] as PieceStyle[]).map((style) => (
+            {(["symbol", "3d", "crystal", "glass", "wooden", "staunton", "california", "merida", "uscf", "cardinal"] as PieceStyle[]).map((style) => (
                 <TouchableOpacity
                     key={style}
                     style={[
