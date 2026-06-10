@@ -12,13 +12,13 @@ export function getBoard() {
     return game.board();
 }
 
-export function makeMove(from: string, to: string) {
+export function makeMove(from: string, to: string, promotion: string = "q") {
     let move = null;
     try {
         move = game.move({
             from: toSq(from),
             to: toSq(to),
-            promotion: "q" // Auto-promote to queen for now to avoid crashes on pawn promotion
+            promotion
         });
     } catch (e) {
         // Invalid move throws an error in modern chess.js
@@ -29,6 +29,11 @@ export function makeMove(from: string, to: string) {
         fen: game.fen(),
         isValid: !!move,
     };
+}
+
+export function isPromotionMove(from: string, to: string) {
+    const moves = game.moves({ verbose: true }) as any[];
+    return moves.some(m => m.from === from && m.to === to && m.promotion);
 }
 
 // turn

@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Image, Modal } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 
 import {
@@ -9,6 +9,7 @@ import {
     getLegalMoves,
     resetGame,
     getCapturedPieces,
+    isPromotionMove,
 } from "../game/engine";
 
 import { toSquare } from "../game/square";
@@ -27,7 +28,8 @@ export default function GameScreen() {
     const [board, setBoard] = useState(getBoard());
     const [selected, setSelected] = useState<string | null>(null);
     const [legalMoves, setLegalMoves] = useState<string[]>([]);
-    const [status, setStatus] = useState("");
+    const [status, setStatus] = useState("White's Turn");
+    const [promotionData, setPromotionData] = useState<{from: string, to: string} | null>(null);
 
     const [lastMove, setLastMove] = useState<{
         from: string;
@@ -78,6 +80,25 @@ export default function GameScreen() {
         );
     };
 
+    const executeMove = (from: string, to: string, promotion: string = "q") => {
+        const result = makeMove(from, to, promotion);
+
+        if (result.isValid) {
+            refresh();
+            updateTurnStatus();
+
+            setLastMove({
+                from,
+                to,
+            });
+        }
+
+        // Unselect after a move
+        setSelected(null);
+        setLegalMoves([]);
+        setPromotionData(null);
+    };
+
     const handlePress = (row: number, col: number) => {
         const square = toSquare(col, row);
         const piece = board[row][col];
@@ -108,21 +129,16 @@ export default function GameScreen() {
         }
 
         // MOVE
-        const result = makeMove(selected, square);
-
-        if (result.isValid) {
-            refresh();
-            updateTurnStatus();
-
-            setLastMove({
-                from: selected,
-                to: square,
-            });
+        if (legalMoves.includes(square)) {
+            if (isPromotionMove(selected, square)) {
+                setPromotionData({ from: selected, to: square });
+                return;
+            }
+            executeMove(selected, square);
+        } else {
+            setSelected(null);
+            setLegalMoves([]);
         }
-
-        // Unselect after a move (valid or invalid)
-        setSelected(null);
-        setLegalMoves([]);
     };
 
     const isLightSquare = (i: number, j: number) => (i + j) % 2 === 0;
@@ -255,6 +271,41 @@ export default function GameScreen() {
 
                 {renderCaptured("w")}
             </View>
+
+            {/* Promotion Modal */}
+            {promotionData && (
+                <Modal transparent animationType="fade">
+                    <View style={styles.promotionOverlay}>
+                        <View style={[styles.promotionBox, { backgroundColor: colors.customBackground }]}>
+                            <Text style={[styles.title, { color: colors.text, marginBottom: 20 }]}>Promote to</Text>
+                            
+                            <View style={styles.promotionOptions}>
+                                {['q', 'r', 'b', 'n'].map(p => (
+                                    <TouchableOpacity 
+                                        key={p} 
+                                        style={[styles.promotionOption, { backgroundColor: boardColors.lightSquare }]} 
+                                        onPress={() => executeMove(promotionData.from, promotionData.to, p)}
+                                    >
+                                        {pieceStyle === "symbol" ? (
+                                            <Text style={styles.piece}>{getPieceSymbol(getTurn() + p)}</Text>
+                                        ) : (
+                                            <Image 
+                                                source={getPieceAssetSource(getTurn(), p, pieceStyle)} 
+                                                style={styles.pieceImage} 
+                                                resizeMode="contain" 
+                                            />
+                                        )}
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+
+                            <TouchableOpacity onPress={() => setPromotionData(null)} style={{ marginTop: 20 }}>
+                                <Text style={{ color: 'red', fontSize: 16 }}>Cancel</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </Modal>
+            )}
         </View>
     );
 }
@@ -322,5 +373,36 @@ const styles = StyleSheet.create({
         width: 20,
         height: 20,
         marginRight: 2,
+    },
+
+    promotionOverlay: {
+        flex: 1,
+        backgroundColor: "rgba(0,0,0,0.5)",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+
+    promotionBox: {
+        padding: 20,
+        borderRadius: 15,
+        alignItems: "center",
+        elevation: 5,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+    },
+
+    promotionOptions: {
+        flexDirection: "row",
+        gap: 10,
+    },
+
+    promotionOption: {
+        width: 60,
+        height: 60,
+        justifyContent: "center",
+        alignItems: "center",
+        borderRadius: 10,
     }
 });
