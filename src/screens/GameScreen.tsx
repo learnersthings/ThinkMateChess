@@ -48,6 +48,11 @@ export default function GameScreen() {
         }, [])
     );
 
+    const updateTurnStatus = () => {
+        const turn = getTurn();
+        setStatus(turn === "w" ? "White's Turn" : "Black's Turn");
+    };
+
     const handlePress = (row: number, col: number) => {
         const square = toSquare(col, row);
         const piece = board[row][col];
@@ -60,7 +65,6 @@ export default function GameScreen() {
 
             setSelected(square);
             setLegalMoves(getLegalMoves(square).map((m) => m.to));
-            setStatus(`Selected ${square}`);
             return;
         }
 
@@ -75,7 +79,6 @@ export default function GameScreen() {
         if (piece && piece.color === turn) {
             setSelected(square);
             setLegalMoves(getLegalMoves(square).map((m) => m.to));
-            setStatus(`Selected ${square}`);
             return;
         }
 
@@ -84,16 +87,15 @@ export default function GameScreen() {
 
         if (result.isValid) {
             refresh();
-            setStatus(`${selected} → ${square}`);
+            updateTurnStatus();
 
             setLastMove({
                 from: selected,
                 to: square,
             });
-        } else {
-            setStatus("Invalid move");
         }
 
+        // Unselect after a move (valid or invalid)
         setSelected(null);
         setLegalMoves([]);
     };

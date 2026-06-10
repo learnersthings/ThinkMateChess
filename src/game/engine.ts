@@ -12,12 +12,17 @@ export function getBoard() {
     return game.board();
 }
 
-// move (UI sends strings only)
 export function makeMove(from: string, to: string) {
-    const move = game.move({
-        from: toSq(from),
-        to: toSq(to),
-    });
+    let move = null;
+    try {
+        move = game.move({
+            from: toSq(from),
+            to: toSq(to),
+            promotion: "q" // Auto-promote to queen for now to avoid crashes on pawn promotion
+        });
+    } catch (e) {
+        // Invalid move throws an error in modern chess.js
+    }
 
     return {
         move,
