@@ -114,114 +114,118 @@ export default function GameScreen() {
                 { backgroundColor: colors.customBackground },
             ]}
         >
-            <Text style={[styles.title, { color: colors.text }]}>
-                ♟ ThinkMate Chess
-            </Text>
 
-            <Text style={[styles.status, { color: colors.text }]}>
-                {status}
-            </Text>
 
-            {boardMode === "3d" ? (
-                <Board3D 
-                    board={board}
-                    handlePress={handlePress}
-                    selected={selected}
-                    legalMoves={legalMoves}
-                    lastMove={lastMove}
-                    boardColors={boardColors}
-                    pieceStyle={pieceStyle}
-                />
-            ) : (
-                <View style={styles.board}>
-                    {board.map((row, i) => (
-                        <View key={i} style={styles.row}>
-                            {row.map((square, j) => {
-                                const sq = toSquare(j, i);
+            {/* Status text positioned absolutely at the top so it doesn't affect the exact centering of the board */}
+            <View style={{ position: "absolute", top: 50, width: "100%", alignItems: "center" }}>
+                <Text style={[styles.status, { color: colors.text }]}>
+                    {status}
+                </Text>
+            </View>
 
-                                let pieceContent = null;
-                                if (square?.type) {
-                                    if (pieceStyle === "symbol") {
-                                        const symbol = getPieceSymbol(`${square.color}${square.type}`);
-                                        pieceContent = (
-                                            <Text
-                                                style={[
-                                                    styles.piece,
-                                                    {
-                                                        color: isLightSquare(i, j)
-                                                            ? colors.customLightText
-                                                            : colors.customDarkText,
-                                                    },
-                                                ]}
-                                            >
-                                                {symbol}
-                                            </Text>
-                                        );
-                                    } else {
-                                        const assetSource = getPieceAssetSource(square.color, square.type, pieceStyle);
-                                        if (assetSource) {
+            {/* The board sits perfectly in the center of the container's flex: 1 space, shifted slightly up to optically balance with bottom tabs */}
+            <View style={{ justifyContent: "center", width: "100%", alignItems: "center", transform: [{ translateY: -30 }] }}>
+                {boardMode === "3d" ? (
+                    <Board3D
+                        board={board}
+                        handlePress={handlePress}
+                        selected={selected}
+                        legalMoves={legalMoves}
+                        lastMove={lastMove}
+                        boardColors={boardColors}
+                        pieceStyle={pieceStyle}
+                    />
+                ) : (
+                    <View style={styles.board}>
+                        {board.map((row, i) => (
+                            <View key={i} style={styles.row}>
+                                {row.map((square, j) => {
+                                    const sq = toSquare(j, i);
+
+                                    let pieceContent = null;
+                                    if (square?.type) {
+                                        if (pieceStyle === "symbol") {
+                                            const symbol = getPieceSymbol(`${square.color}${square.type}`);
                                             pieceContent = (
-                                                <Image 
-                                                    source={assetSource} 
-                                                    style={styles.pieceImage} 
-                                                    resizeMode="contain"
-                                                />
+                                                <Text
+                                                    style={[
+                                                        styles.piece,
+                                                        {
+                                                            color: isLightSquare(i, j)
+                                                                ? colors.customLightText
+                                                                : colors.customDarkText,
+                                                        },
+                                                    ]}
+                                                >
+                                                    {symbol}
+                                                </Text>
                                             );
+                                        } else {
+                                            const assetSource = getPieceAssetSource(square.color, square.type, pieceStyle);
+                                            if (assetSource) {
+                                                pieceContent = (
+                                                    <Image
+                                                        source={assetSource}
+                                                        style={styles.pieceImage}
+                                                        resizeMode="contain"
+                                                    />
+                                                );
+                                            }
                                         }
                                     }
-                                }
 
-                                const selectedStyle = selected === sq;
-                                const legal = isLegalMove(sq);
-                                const last = isLastMove(sq);
+                                    const selectedStyle = selected === sq;
+                                    const legal = isLegalMove(sq);
+                                    const last = isLastMove(sq);
 
-                                return (
-                                    <TouchableOpacity
-                                        key={j}
-                                        onPress={() => handlePress(i, j)}
-                                        style={[
-                                            styles.square,
+                                    return (
+                                        <TouchableOpacity
+                                            key={j}
+                                            onPress={() => handlePress(i, j)}
+                                            style={[
+                                                styles.square,
 
-                                            // THEME-BASED COLORS (NO HARD CODE)
-                                            {
-                                                backgroundColor: isLightSquare(i, j)
-                                                    ? boardColors.lightSquare
-                                                    : boardColors.darkSquare,
-                                            },
+                                                // THEME-BASED COLORS (NO HARD CODE)
+                                                {
+                                                    backgroundColor: isLightSquare(i, j)
+                                                        ? boardColors.lightSquare
+                                                        : boardColors.darkSquare,
+                                                },
 
-                                            // selected
-                                            selectedStyle && {
-                                                borderWidth: 2,
-                                                borderColor: colors.selected,
-                                            },
+                                                // selected
+                                                selectedStyle && {
+                                                    borderWidth: 2,
+                                                    borderColor: colors.selected,
+                                                },
 
-                                            // last move highlight
-                                            last && {
-                                                backgroundColor: colors.lastMove,
-                                            },
-                                        ]}
-                                    >
-                                        {pieceContent}
+                                                // last move highlight
+                                                last && {
+                                                    backgroundColor: colors.lastMove,
+                                                },
+                                            ]}
+                                        >
+                                            {pieceContent}
 
-                                        {legal && (
-                                            <View
-                                                style={{
-                                                    width: 10,
-                                                    height: 10,
-                                                    borderRadius: 5,
-                                                    backgroundColor:
-                                                        colors.legalDot,
-                                                    position: "absolute",
-                                                }}
-                                            />
-                                        )}
-                                    </TouchableOpacity>
-                                );
-                            })}
-                        </View>
-                    ))}
-                </View>
-            )}
+                                            {legal && (
+                                                <View
+                                                    style={{
+                                                        width: 10,
+                                                        height: 10,
+                                                        borderRadius: 5,
+                                                        backgroundColor:
+                                                            colors.legalDot,
+                                                        position: "absolute",
+                                                    }}
+                                                />
+                                            )}
+                                        </TouchableOpacity>
+                                    );
+                                })}
+                            </View>
+                        ))}
+                    </View>
+                )}
+            </View>
         </View>
     );
 }
@@ -230,7 +234,8 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: "center",
-        paddingTop: 20,
+        justifyContent: "center",
+        paddingVertical: 20,
     },
 
     title: {
@@ -239,11 +244,12 @@ const styles = StyleSheet.create({
     },
 
     status: {
-        marginBottom: 10,
+        fontSize: 18,
+        fontWeight: "bold",
+        marginBottom: 20,
     },
 
     board: {
-        marginTop: 10,
         borderRadius: 10,
         overflow: "hidden",
     },

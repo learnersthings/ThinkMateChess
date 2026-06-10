@@ -67,12 +67,13 @@ export default function Board3D({
     const isLightSquare = (i: number, j: number) => (i + j) % 2 === 0;
 
     return (
-        <View style={{ width: '100%', height: 400, marginTop: 10 }}>
+        <View style={{ width: '100%', height: 400 }}>
             {/* Player perspective: Sitting behind the white pieces, looking across the board */}
             <Canvas camera={{ position: [0, 6, 8], fov: 55 }}>
                 <ambientLight intensity={0.6} />
                 <directionalLight position={[10, 10, 10]} intensity={1.5} />
-                <OrbitControls enablePan={false} maxPolarAngle={Math.PI / 2 - 0.1} />
+                {/* Adjust target to shift the board up slightly on the screen so it looks perfectly centered */}
+                <OrbitControls enablePan={false} maxPolarAngle={Math.PI / 2 - 0.1} target={[0, 0, 1.5]} />
 
                 <group position={[-3.5, 0, -3.5]}>
                     {board.map((row, i) =>
