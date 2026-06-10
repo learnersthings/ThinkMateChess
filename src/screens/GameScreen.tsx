@@ -18,8 +18,9 @@ import { useGameSettings } from "../context/GameSettingsContext";
 import { getPieceAssetSource } from "../game/pieceAssets";
 
 export default function GameScreen() {
-    const { colors } = useThemeStyles();
+    const { colors, getBoardColors } = useThemeStyles();
     const { pieceStyle } = useGameSettings();
+    const boardColors = getBoardColors(pieceStyle);
 
     const [board, setBoard] = useState(getBoard());
     const [selected, setSelected] = useState<string | null>(null);
@@ -170,8 +171,8 @@ export default function GameScreen() {
                                         // THEME-BASED COLORS (NO HARD CODE)
                                         {
                                             backgroundColor: isLightSquare(i, j)
-                                                ? colors.lightSquare
-                                                : colors.darkSquare,
+                                                ? boardColors.lightSquare
+                                                : boardColors.darkSquare,
                                         },
 
                                         // selected
