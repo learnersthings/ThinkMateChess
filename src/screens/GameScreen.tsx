@@ -16,10 +16,11 @@ import { useThemeStyles } from "../theme/useThemeStyles";
 import { getPieceSymbol } from "../game/pieces";
 import { useGameSettings } from "../context/GameSettingsContext";
 import { getPieceAssetSource } from "../game/pieceAssets";
+import Board3D from "../components/Board3D";
 
 export default function GameScreen() {
     const { colors, getBoardColors } = useThemeStyles();
-    const { pieceStyle } = useGameSettings();
+    const { pieceStyle, boardMode } = useGameSettings();
     const boardColors = getBoardColors(pieceStyle);
 
     const [board, setBoard] = useState(getBoard());
@@ -119,95 +120,106 @@ export default function GameScreen() {
                 {status}
             </Text>
 
-            <View style={styles.board}>
-                {board.map((row, i) => (
-                    <View key={i} style={styles.row}>
-                        {row.map((square, j) => {
-                            const sq = toSquare(j, i);
+            {boardMode === "3d" ? (
+                <Board3D 
+                    board={board}
+                    handlePress={handlePress}
+                    selected={selected}
+                    legalMoves={legalMoves}
+                    lastMove={lastMove}
+                    boardColors={boardColors}
+                    pieceStyle={pieceStyle}
+                />
+            ) : (
+                <View style={styles.board}>
+                    {board.map((row, i) => (
+                        <View key={i} style={styles.row}>
+                            {row.map((square, j) => {
+                                const sq = toSquare(j, i);
 
-                            let pieceContent = null;
-                            if (square?.type) {
-                                if (pieceStyle === "symbol") {
-                                    const symbol = getPieceSymbol(`${square.color}${square.type}`);
-                                    pieceContent = (
-                                        <Text
-                                            style={[
-                                                styles.piece,
-                                                {
-                                                    color: isLightSquare(i, j)
-                                                        ? colors.customLightText
-                                                        : colors.customDarkText,
-                                                },
-                                            ]}
-                                        >
-                                            {symbol}
-                                        </Text>
-                                    );
-                                } else {
-                                    const assetSource = getPieceAssetSource(square.color, square.type, pieceStyle);
-                                    if (assetSource) {
+                                let pieceContent = null;
+                                if (square?.type) {
+                                    if (pieceStyle === "symbol") {
+                                        const symbol = getPieceSymbol(`${square.color}${square.type}`);
                                         pieceContent = (
-                                            <Image 
-                                                source={assetSource} 
-                                                style={styles.pieceImage} 
-                                                resizeMode="contain"
-                                            />
+                                            <Text
+                                                style={[
+                                                    styles.piece,
+                                                    {
+                                                        color: isLightSquare(i, j)
+                                                            ? colors.customLightText
+                                                            : colors.customDarkText,
+                                                    },
+                                                ]}
+                                            >
+                                                {symbol}
+                                            </Text>
                                         );
+                                    } else {
+                                        const assetSource = getPieceAssetSource(square.color, square.type, pieceStyle);
+                                        if (assetSource) {
+                                            pieceContent = (
+                                                <Image 
+                                                    source={assetSource} 
+                                                    style={styles.pieceImage} 
+                                                    resizeMode="contain"
+                                                />
+                                            );
+                                        }
                                     }
                                 }
-                            }
 
-                            const selectedStyle = selected === sq;
-                            const legal = isLegalMove(sq);
-                            const last = isLastMove(sq);
+                                const selectedStyle = selected === sq;
+                                const legal = isLegalMove(sq);
+                                const last = isLastMove(sq);
 
-                            return (
-                                <TouchableOpacity
-                                    key={j}
-                                    onPress={() => handlePress(i, j)}
-                                    style={[
-                                        styles.square,
+                                return (
+                                    <TouchableOpacity
+                                        key={j}
+                                        onPress={() => handlePress(i, j)}
+                                        style={[
+                                            styles.square,
 
-                                        // THEME-BASED COLORS (NO HARD CODE)
-                                        {
-                                            backgroundColor: isLightSquare(i, j)
-                                                ? boardColors.lightSquare
-                                                : boardColors.darkSquare,
-                                        },
+                                            // THEME-BASED COLORS (NO HARD CODE)
+                                            {
+                                                backgroundColor: isLightSquare(i, j)
+                                                    ? boardColors.lightSquare
+                                                    : boardColors.darkSquare,
+                                            },
 
-                                        // selected
-                                        selectedStyle && {
-                                            borderWidth: 2,
-                                            borderColor: colors.selected,
-                                        },
+                                            // selected
+                                            selectedStyle && {
+                                                borderWidth: 2,
+                                                borderColor: colors.selected,
+                                            },
 
-                                        // last move
-                                        last && {
-                                            backgroundColor: colors.lastMove,
-                                        },
-                                    ]}
-                                >
-                                    {pieceContent}
+                                            // last move highlight
+                                            last && {
+                                                backgroundColor: colors.lastMove,
+                                            },
+                                        ]}
+                                    >
+                                        {pieceContent}
 
-                                    {/* LEGAL MOVE DOT */}
-                                    {legal && !square?.type && (
-                                        <View
-                                            style={{
-                                                width: 10,
-                                                height: 10,
-                                                borderRadius: 5,
-                                                backgroundColor:
-                                                    colors.legalDot,
-                                                position: "absolute",
-                                            }}
-                                        />
-                                    )}
-                                </TouchableOpacity>
-                            );
-                        })}
-                    </View>
-                ))}
-            </View>
+                                        {legal && (
+                                            <View
+                                                style={{
+                                                    width: 10,
+                                                    height: 10,
+                                                    borderRadius: 5,
+                                                    backgroundColor:
+                                                        colors.legalDot,
+                                                    position: "absolute",
+                                                }}
+                                            />
+                                        )}
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
+                    ))}
+                </View>
+            )}
         </View>
     );
 }
