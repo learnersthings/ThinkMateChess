@@ -8,6 +8,7 @@ import {
     getTurn,
     getLegalMoves,
     resetGame,
+    getCapturedPieces,
 } from "../game/engine";
 
 import { toSquare } from "../game/square";
@@ -51,6 +52,30 @@ export default function GameScreen() {
     const updateTurnStatus = () => {
         const turn = getTurn();
         setStatus(turn === "w" ? "White's Turn" : "Black's Turn");
+    };
+
+    const captured = getCapturedPieces();
+
+    const renderCaptured = (color: "w" | "b") => {
+        const pieces = captured[color];
+        return (
+            <View style={styles.capturedContainer}>
+                {pieces.map((p, i) => {
+                    if (pieceStyle === "symbol") {
+                        return (
+                            <Text key={i} style={[styles.capturedSymbol, { color: color === "w" ? "#dddddd" : "#222222" }]}>
+                                {getPieceSymbol(color + p)}
+                            </Text>
+                        );
+                    } else {
+                        const src = getPieceAssetSource(color, p, pieceStyle);
+                        return src ? (
+                            <Image key={i} source={src} style={styles.capturedImage} resizeMode="contain" />
+                        ) : null;
+                    }
+                })}
+            </View>
+        );
     };
 
     const handlePress = (row: number, col: number) => {
@@ -125,6 +150,8 @@ export default function GameScreen() {
 
             {/* The board sits perfectly in the center of the container's flex: 1 space, shifted slightly up to optically balance with bottom tabs */}
             <View style={{ justifyContent: "center", width: "100%", alignItems: "center", transform: [{ translateY: -30 }] }}>
+                {renderCaptured("b")}
+
                 {boardMode === "3d" ? (
                     <Board3D
                         board={board}
@@ -225,6 +252,8 @@ export default function GameScreen() {
                         ))}
                     </View>
                 )}
+
+                {renderCaptured("w")}
             </View>
         </View>
     );
@@ -266,11 +295,32 @@ const styles = StyleSheet.create({
     },
 
     piece: {
-        fontSize: 28,
+        fontSize: 32,
     },
 
     pieceImage: {
-        width: 34,
-        height: 34,
+        width: 40,
+        height: 40,
     },
+
+    capturedContainer: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        width: 8 * 44,
+        minHeight: 30,
+        marginVertical: 10,
+        paddingHorizontal: 5,
+        alignItems: "center",
+    },
+
+    capturedSymbol: {
+        fontSize: 22,
+        marginRight: 2,
+    },
+
+    capturedImage: {
+        width: 20,
+        height: 20,
+        marginRight: 2,
+    }
 });
