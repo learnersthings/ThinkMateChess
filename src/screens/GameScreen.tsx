@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Image, Modal } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Image, Modal, Alert } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 
 import {
@@ -87,6 +87,17 @@ export default function GameScreen() {
         setLastMove(null);
         setPromotionData(null);
         updateGameStatus();
+    };
+
+    const confirmReset = () => {
+        Alert.alert(
+            "Restart Game",
+            "Are you sure you want to restart the game? Your current progress will be lost.",
+            [
+                { text: "Cancel", style: "cancel" },
+                { text: "Restart", style: "destructive", onPress: handleReset }
+            ]
+        );
     };
 
     const handleUndo = () => {
@@ -242,7 +253,7 @@ export default function GameScreen() {
                             <Text style={styles.controlText}>Undo</Text>
                         </TouchableOpacity>
                     )}
-                    <TouchableOpacity onPress={handleReset} style={styles.controlButton}>
+                    <TouchableOpacity onPress={confirmReset} style={styles.controlButton}>
                         <Text style={styles.controlText}>Restart</Text>
                     </TouchableOpacity>
                 </View>
