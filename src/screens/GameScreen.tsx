@@ -409,14 +409,14 @@ const styles = StyleSheet.create({
     },
 
     capturedSymbol: {
-        fontSize: 22,
-        marginRight: 2,
+        fontSize: 30,
+        marginRight: 4,
     },
 
     capturedImage: {
-        width: 20,
-        height: 20,
-        marginRight: 2,
+        width: 28,
+        height: 28,
+        marginRight: 4,
     },
 
     promotionOverlay: {
