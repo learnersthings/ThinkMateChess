@@ -5,6 +5,10 @@ export type PieceStyle = "symbol" | "3d" | "crystal" | "glass" | "wooden" | "sta
 interface GameSettingsContextType {
     pieceStyle: PieceStyle;
     setPieceStyle: (style: PieceStyle) => void;
+    gameMode: "single" | "two";
+    setGameMode: (mode: "single" | "two") => void;
+    playerColor: "w" | "b";
+    setPlayerColor: (color: "w" | "b") => void;
 }
 
 const GameSettingsContext = createContext<GameSettingsContextType | undefined>(
@@ -13,9 +17,11 @@ const GameSettingsContext = createContext<GameSettingsContextType | undefined>(
 
 export const GameSettingsProvider = ({ children }: { children: ReactNode }) => {
     const [pieceStyle, setPieceStyle] = useState<PieceStyle>("symbol");
+    const [gameMode, setGameMode] = useState<"single" | "two">("two");
+    const [playerColor, setPlayerColor] = useState<"w" | "b">("w");
 
     return (
-        <GameSettingsContext.Provider value={{ pieceStyle, setPieceStyle }}>
+        <GameSettingsContext.Provider value={{ pieceStyle, setPieceStyle, gameMode, setGameMode, playerColor, setPlayerColor }}>
             {children}
         </GameSettingsContext.Provider>
     );

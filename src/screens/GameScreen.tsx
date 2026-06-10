@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Image, Modal } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 
@@ -14,6 +14,7 @@ import {
     isGameOver,
     getGameOverReason,
     getKingSquare,
+    makeComputerMove,
 } from "../game/engine";
 
 import { toSquare } from "../game/square";
@@ -25,7 +26,7 @@ import { getPieceAssetSource } from "../game/pieceAssets";
 
 export default function GameScreen() {
     const { colors, getBoardColors } = useThemeStyles();
-    const { pieceStyle } = useGameSettings();
+    const { pieceStyle, gameMode, playerColor } = useGameSettings();
     const boardColors = getBoardColors(pieceStyle);
 
     const [board, setBoard] = useState(getBoard());
@@ -87,6 +88,28 @@ export default function GameScreen() {
         updateGameStatus();
     };
 
+    // Computer Move Logic
+    useEffect(() => {
+        if (gameMode === "single" && !isGameOver()) {
+            const turn = getTurn();
+            if (turn !== playerColor) {
+                // It's the computer's turn. Wait a small delay for realism.
+                const timer = setTimeout(() => {
+                    const result = makeComputerMove();
+                    if (result && result.isValid) {
+                        refresh();
+                        setLastMove({
+                            from: result.move.from,
+                            to: result.move.to,
+                        });
+                        updateGameStatus();
+                    }
+                }, 500);
+                return () => clearTimeout(timer);
+            }
+        }
+    }, [board, gameMode, playerColor]);
+
     const captured = getCapturedPieces();
 
     const renderCaptured = (color: "w" | "b") => {
@@ -138,6 +161,7 @@ export default function GameScreen() {
         if (!selected) {
             if (!piece) return;
             if (piece.color !== turn) return;
+            if (gameMode === "single" && turn !== playerColor) return; // Prevent selection on computer's turn
 
             setSelected(square);
             setLegalMoves(getLegalMoves(square).map((m) => m.to));
@@ -196,9 +220,9 @@ export default function GameScreen() {
 
             {/* The board sits perfectly in the center of the container's flex: 1 space, shifted slightly up to optically balance with bottom tabs */}
             <View style={{ justifyContent: "center", width: "100%", alignItems: "center", transform: [{ translateY: -30 }] }}>
-                {renderCaptured("b")}
+                {renderCaptured(playerColor === "b" ? "w" : "b")}
 
-                <View style={styles.board}>
+                <View style={[styles.board, playerColor === "b" && { transform: [{ rotate: "180deg" }] }]}>
                     {board.map((row, i) => (
                         <View key={i} style={styles.row}>
                                 {row.map((square, j) => {
@@ -235,15 +259,12 @@ export default function GameScreen() {
                                             }
                                         }
                                     }
-
-                                    const selectedStyle = selected === sq;
+                                    
                                     const legal = isLegalMove(sq);
-                                    const last = isLastMove(sq);
 
                                     return (
                                         <TouchableOpacity
                                             key={j}
-                                            onPress={() => handlePress(i, j)}
                                             style={[
                                                 styles.square,
 
@@ -257,18 +278,20 @@ export default function GameScreen() {
                                                 },
 
                                                 // selected
-                                                selectedStyle && {
+                                                selected === sq && {
                                                     borderWidth: 2,
                                                     borderColor: colors.selected,
                                                 },
 
-                                                // last move highlight
-                                                last && {
-                                                    backgroundColor: colors.lastMove,
-                                                },
+                                                // last move
+                                                isLastMove(sq) && { backgroundColor: colors.lastMove },
                                             ]}
+                                            onPress={() => handlePress(i, j)}
+                                            activeOpacity={1}
                                         >
-                                            {pieceContent}
+                                            <View style={playerColor === "b" ? { transform: [{ rotate: "180deg" }] } : {}}>
+                                                {pieceContent}
+                                            </View>
 
                                             {legal && (
                                                 <View
@@ -276,8 +299,7 @@ export default function GameScreen() {
                                                         width: 10,
                                                         height: 10,
                                                         borderRadius: 5,
-                                                        backgroundColor:
-                                                            colors.legalDot,
+                                                        backgroundColor: colors.legalDot,
                                                         position: "absolute",
                                                     }}
                                                 />
@@ -289,7 +311,7 @@ export default function GameScreen() {
                         ))}
                 </View>
 
-                {renderCaptured("w")}
+                {renderCaptured(playerColor === "b" ? "b" : "w")}
             </View>
 
             {/* Game Over Modal / Overlay */}

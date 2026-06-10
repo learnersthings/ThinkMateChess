@@ -4,9 +4,8 @@ import { useTheme } from "../context/ThemeContext";
 import { useGameSettings, PieceStyle } from "../context/GameSettingsContext";
 
 export default function SettingsScreen() {
-    const [mode, setMode] = useState<"single" | "two">("two");
     const { theme, toggleTheme } = useTheme();
-    const { pieceStyle, setPieceStyle } = useGameSettings();
+    const { pieceStyle, setPieceStyle, gameMode, setGameMode, playerColor, setPlayerColor } = useGameSettings();
 
     const isDark = theme === "dark";
 
@@ -42,12 +41,47 @@ export default function SettingsScreen() {
             <View style={styles.toggleRow}>
                 <Text style={[styles.toggleLabel, isDark && styles.darkText]}>Two Player Mode</Text>
                 <Switch
-                    value={mode === "two"}
-                    onValueChange={(val) => setMode(val ? "two" : "single")}
+                    value={gameMode === "two"}
+                    onValueChange={(val) => setGameMode(val ? "two" : "single")}
                     trackColor={{ false: "#767577", true: "#2e7d32" }}
-                    thumbColor={mode === "two" ? "#ffffff" : "#f4f3f4"}
+                    thumbColor={gameMode === "two" ? "#ffffff" : "#f4f3f4"}
                 />
             </View>
+
+            {/* PLAYER COLOR (Only show if Single Player) */}
+            {gameMode === "single" && (
+                <View style={styles.colorSelectorContainer}>
+                    <Text style={[styles.sectionTitle, isDark && styles.darkText]}>Play as</Text>
+                    <View style={styles.segmentedControl}>
+                        <TouchableOpacity
+                            style={[
+                                styles.segmentButton,
+                                playerColor === "w" && styles.segmentButtonActive,
+                                isDark && playerColor !== "w" && styles.optionDark
+                            ]}
+                            onPress={() => setPlayerColor("w")}
+                        >
+                            <Text style={[
+                                styles.segmentText,
+                                playerColor === "w" ? styles.segmentTextActive : (isDark && styles.darkText)
+                            ]}>White</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[
+                                styles.segmentButton,
+                                playerColor === "b" && styles.segmentButtonActive,
+                                isDark && playerColor !== "b" && styles.optionDark
+                            ]}
+                            onPress={() => setPlayerColor("b")}
+                        >
+                            <Text style={[
+                                styles.segmentText,
+                                playerColor === "b" ? styles.segmentTextActive : (isDark && styles.darkText)
+                            ]}>Black</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            )}
 
             <Text style={[styles.sectionTitle, isDark && styles.darkText, { marginTop: 20 }]}>Piece Style</Text>
 
@@ -156,5 +190,41 @@ const styles = StyleSheet.create({
     selected: {
         borderWidth: 2,
         borderColor: "#2e7d32",
+    },
+
+    colorSelectorContainer: {
+        width: "80%",
+        alignItems: "center",
+        marginTop: 10,
+        marginBottom: 10,
+    },
+
+    segmentedControl: {
+        flexDirection: "row",
+        width: "100%",
+        backgroundColor: "#ddd",
+        borderRadius: 8,
+        overflow: "hidden",
+    },
+
+    segmentButton: {
+        flex: 1,
+        paddingVertical: 12,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+
+    segmentButtonActive: {
+        backgroundColor: "#2e7d32",
+    },
+
+    segmentText: {
+        fontSize: 16,
+        fontWeight: "500",
+    },
+
+    segmentTextActive: {
+        color: "white",
+        fontWeight: "bold",
     },
 });

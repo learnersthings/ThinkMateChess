@@ -36,6 +36,46 @@ export function isPromotionMove(from: string, to: string) {
     return moves.some(m => m.from === from && m.to === to && m.promotion);
 }
 
+export function makeComputerMove() {
+    const moves = game.moves({ verbose: true }) as any[];
+    if (moves.length === 0) return null;
+
+    const pieceValues: Record<string, number> = { q: 9, r: 5, b: 3, n: 3, p: 1 };
+    
+    let bestMove = null;
+    let bestScore = -1;
+
+    for (const move of moves) {
+        let score = 0;
+        if (move.captured) {
+            score = pieceValues[move.captured] || 1;
+        }
+        
+        if (move.promotion) {
+            score += 8; 
+        }
+
+        score += Math.random() * 0.5;
+
+        if (score > bestScore) {
+            bestScore = score;
+            bestMove = move;
+        }
+    }
+
+    if (!bestMove) {
+        bestMove = moves[Math.floor(Math.random() * moves.length)];
+    }
+
+    const result = game.move(bestMove.san);
+    
+    return {
+        move: result,
+        fen: game.fen(),
+        isValid: !!result,
+    };
+}
+
 // turn
 export function getTurn() {
     return game.turn();
