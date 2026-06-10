@@ -94,6 +94,11 @@ export function resetGame() {
     game.reset();
 }
 
+// undo
+export function undoMove() {
+    return game.undo();
+}
+
 // fen
 export function getFEN() {
     return game.fen();

@@ -15,6 +15,7 @@ import {
     getGameOverReason,
     getKingSquare,
     makeComputerMove,
+    undoMove,
 } from "../game/engine";
 
 import { toSquare } from "../game/square";
@@ -85,6 +86,24 @@ export default function GameScreen() {
         setLegalMoves([]);
         setLastMove(null);
         setPromotionData(null);
+        updateGameStatus();
+    };
+
+    const handleUndo = () => {
+        if (gameMode !== "single") return;
+
+        // Undo once
+        undoMove();
+        
+        // If it's still not the player's turn (i.e. we undid the computer's move but now it's our previous move), undo again
+        if (getTurn() !== playerColor) {
+            undoMove();
+        }
+
+        refresh();
+        setSelected(null);
+        setLegalMoves([]);
+        setLastMove(null);
         updateGameStatus();
     };
 
@@ -212,10 +231,16 @@ export default function GameScreen() {
 
 
             {/* Status text positioned absolutely at the top so it doesn't affect the exact centering of the board */}
-            <View style={{ position: "absolute", top: 50, width: "100%", alignItems: "center" }}>
+            <View style={{ position: "absolute", top: 50, width: "100%", alignItems: "center", zIndex: 10 }}>
                 <Text style={[styles.status, { color: colors.text }]}>
                     {status}
                 </Text>
+
+                {gameMode === "single" && (
+                    <TouchableOpacity onPress={handleUndo} style={styles.undoButton}>
+                        <Text style={styles.undoText}>Undo</Text>
+                    </TouchableOpacity>
+                )}
             </View>
 
             {/* The board sits perfectly in the center of the container's flex: 1 space, shifted slightly up to optically balance with bottom tabs */}
@@ -378,7 +403,20 @@ const styles = StyleSheet.create({
     status: {
         fontSize: 18,
         fontWeight: "bold",
-        marginBottom: 20,
+        marginBottom: 10,
+    },
+
+    undoButton: {
+        paddingHorizontal: 16,
+        paddingVertical: 6,
+        backgroundColor: "#666",
+        borderRadius: 20,
+    },
+
+    undoText: {
+        color: "white",
+        fontWeight: "bold",
+        fontSize: 14,
     },
 
     board: {
