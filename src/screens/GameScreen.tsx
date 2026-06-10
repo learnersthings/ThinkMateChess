@@ -10,6 +10,10 @@ import {
     resetGame,
     getCapturedPieces,
     isPromotionMove,
+    isCheck,
+    isGameOver,
+    getGameOverReason,
+    getKingSquare,
 } from "../game/engine";
 
 import { toSquare } from "../game/square";
@@ -30,6 +34,8 @@ export default function GameScreen() {
     const [legalMoves, setLegalMoves] = useState<string[]>([]);
     const [status, setStatus] = useState("White's Turn");
     const [promotionData, setPromotionData] = useState<{from: string, to: string} | null>(null);
+    const [checkSquare, setCheckSquare] = useState<string | null>(null);
+    const [gameOverText, setGameOverText] = useState<string | null>(null);
 
     const [lastMove, setLastMove] = useState<{
         from: string;
@@ -42,18 +48,44 @@ export default function GameScreen() {
 
     useFocusEffect(
         useCallback(() => {
-            resetGame();
-            setBoard([...getBoard()]);
-            setSelected(null);
-            setLegalMoves([]);
-            setStatus("");
-            setLastMove(null);
+            refresh();
+            updateGameStatus();
         }, [])
     );
 
-    const updateTurnStatus = () => {
+    const updateGameStatus = () => {
         const turn = getTurn();
-        setStatus(turn === "w" ? "White's Turn" : "Black's Turn");
+        let currentStatus = turn === "w" ? "White's Turn" : "Black's Turn";
+
+        if (isGameOver()) {
+            const reason = getGameOverReason();
+            const winner = reason === "Checkmate" ? (turn === 'w' ? "Black Wins!" : "White Wins!") : "";
+            setGameOverText(`${reason}${winner ? `\n${winner}` : ''}`);
+            currentStatus = "Game Over";
+        } else {
+            setGameOverText(null);
+        }
+
+        if (isCheck()) {
+            setCheckSquare(getKingSquare(turn));
+            if (!isGameOver()) {
+                currentStatus = "Check!";
+            }
+        } else {
+            setCheckSquare(null);
+        }
+
+        setStatus(currentStatus);
+    };
+
+    const handleReset = () => {
+        resetGame();
+        setBoard(getBoard());
+        setSelected(null);
+        setLegalMoves([]);
+        setLastMove(null);
+        setPromotionData(null);
+        updateGameStatus();
     };
 
     const captured = getCapturedPieces();
@@ -85,12 +117,11 @@ export default function GameScreen() {
 
         if (result.isValid) {
             refresh();
-            updateTurnStatus();
-
             setLastMove({
                 from,
                 to,
             });
+            updateGameStatus();
         }
 
         // Unselect after a move
@@ -177,6 +208,7 @@ export default function GameScreen() {
                         lastMove={lastMove}
                         boardColors={boardColors}
                         pieceStyle={pieceStyle}
+                        checkSquare={checkSquare}
                     />
                 ) : (
                     <View style={styles.board}>
@@ -230,9 +262,11 @@ export default function GameScreen() {
 
                                                 // THEME-BASED COLORS (NO HARD CODE)
                                                 {
-                                                    backgroundColor: isLightSquare(i, j)
-                                                        ? boardColors.lightSquare
-                                                        : boardColors.darkSquare,
+                                                    backgroundColor: checkSquare === sq
+                                                        ? "rgba(255, 0, 0, 0.7)"
+                                                        : isLightSquare(i, j)
+                                                            ? boardColors.lightSquare
+                                                            : boardColors.darkSquare,
                                                 },
 
                                                 // selected
@@ -271,6 +305,16 @@ export default function GameScreen() {
 
                 {renderCaptured("w")}
             </View>
+
+            {/* Game Over Modal / Overlay */}
+            {gameOverText && (
+                <View style={styles.gameOverContainer}>
+                    <Text style={styles.gameOverText}>{gameOverText}</Text>
+                    <TouchableOpacity style={styles.playAgainButton} onPress={handleReset}>
+                        <Text style={styles.playAgainText}>Play Again</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
 
             {/* Promotion Modal */}
             {promotionData && (
@@ -404,5 +448,41 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         alignItems: "center",
         borderRadius: 10,
+    },
+
+    gameOverContainer: {
+        position: "absolute",
+        top: "40%",
+        width: "80%",
+        backgroundColor: "rgba(0, 0, 0, 0.8)",
+        padding: 30,
+        borderRadius: 20,
+        alignItems: "center",
+        elevation: 10,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
+    },
+
+    gameOverText: {
+        color: "white",
+        fontSize: 28,
+        fontWeight: "bold",
+        textAlign: "center",
+        marginBottom: 20,
+    },
+
+    playAgainButton: {
+        backgroundColor: "#4aa3ff",
+        paddingVertical: 12,
+        paddingHorizontal: 30,
+        borderRadius: 10,
+    },
+
+    playAgainText: {
+        color: "white",
+        fontSize: 18,
+        fontWeight: "bold",
     }
 });

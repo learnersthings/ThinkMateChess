@@ -59,6 +59,35 @@ export function getFEN() {
     return game.fen();
 }
 
+// Game State
+export function isCheck() {
+    return game.isCheck();
+}
+
+export function isGameOver() {
+    return game.isGameOver();
+}
+
+export function getGameOverReason() {
+    if (game.isCheckmate()) return "Checkmate";
+    if (game.isStalemate()) return "Stalemate";
+    if (game.isDraw()) return "Draw";
+    return "";
+}
+
+export function getKingSquare(color: "w" | "b"): string | null {
+    const board = game.board();
+    for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
+            const piece = board[i][j];
+            if (piece && piece.type === 'k' && piece.color === color) {
+                return piece.square;
+            }
+        }
+    }
+    return null;
+}
+
 // captured pieces
 export function getCapturedPieces() {
     const history = game.history({ verbose: true }) as any[];

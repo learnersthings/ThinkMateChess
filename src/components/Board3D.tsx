@@ -52,6 +52,7 @@ interface Board3DProps {
     lastMove: { from: string; to: string } | null;
     boardColors: { lightSquare: string; darkSquare: string };
     pieceStyle: PieceStyle;
+    checkSquare?: string | null;
 }
 
 export default function Board3D({
@@ -61,7 +62,8 @@ export default function Board3D({
     legalMoves,
     lastMove,
     boardColors,
-    pieceStyle
+    pieceStyle,
+    checkSquare,
 }: Board3DProps) {
 
     const isLightSquare = (i: number, j: number) => (i + j) % 2 === 0;
@@ -80,21 +82,8 @@ export default function Board3D({
                         row.map((square, j) => {
                             const sq = toSquare(j, i);
 
-                            const x = j;
-                            const z = i;
-                            const y = 0;
-
-                            const isLight = isLightSquare(i, j);
-                            let color = isLight ? boardColors.lightSquare : boardColors.darkSquare;
-
-                            if (selected === sq) color = "#4aa3ff";
-                            else if (legalMoves.includes(sq)) color = "#245bdd";
-                            else if (lastMove?.from === sq || lastMove?.to === sq) {
-                                color = "#ffd700";
-                            }
-
                             return (
-                                <group key={`${i}-${j}`} position={[x, y, z]}>
+                                <group key={`${i}-${j}`} position={[j, 0, i]}>
                                     <Box
                                         args={[1, 0.2, 1]}
                                         position={[0, -0.1, 0]}
@@ -103,7 +92,15 @@ export default function Board3D({
                                             handlePress(i, j);
                                         }}
                                     >
-                                        <meshStandardMaterial color={color} />
+                                        <meshBasicMaterial
+                                            color={
+                                                checkSquare === sq
+                                                    ? "#ff4444"
+                                                    : selected === sq
+                                                    ? "#ffeb3b"
+                                                    : (legalMoves.includes(sq) ? "#245bdd" : (lastMove?.from === sq || lastMove?.to === sq ? "#b2dfdb" : (isLightSquare(i, j) ? boardColors.lightSquare : boardColors.darkSquare)))
+                                            }
+                                        />
                                     </Box>
 
                                     {square?.type && pieceStyle !== "symbol" && (
