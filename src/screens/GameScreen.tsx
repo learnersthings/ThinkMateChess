@@ -22,11 +22,10 @@ import { useThemeStyles } from "../theme/useThemeStyles";
 import { getPieceSymbol } from "../game/pieces";
 import { useGameSettings } from "../context/GameSettingsContext";
 import { getPieceAssetSource } from "../game/pieceAssets";
-import Board3D from "../components/Board3D";
 
 export default function GameScreen() {
     const { colors, getBoardColors } = useThemeStyles();
-    const { pieceStyle, boardMode } = useGameSettings();
+    const { pieceStyle } = useGameSettings();
     const boardColors = getBoardColors(pieceStyle);
 
     const [board, setBoard] = useState(getBoard());
@@ -199,21 +198,9 @@ export default function GameScreen() {
             <View style={{ justifyContent: "center", width: "100%", alignItems: "center", transform: [{ translateY: -30 }] }}>
                 {renderCaptured("b")}
 
-                {boardMode === "3d" ? (
-                    <Board3D
-                        board={board}
-                        handlePress={handlePress}
-                        selected={selected}
-                        legalMoves={legalMoves}
-                        lastMove={lastMove}
-                        boardColors={boardColors}
-                        pieceStyle={pieceStyle}
-                        checkSquare={checkSquare}
-                    />
-                ) : (
-                    <View style={styles.board}>
-                        {board.map((row, i) => (
-                            <View key={i} style={styles.row}>
+                <View style={styles.board}>
+                    {board.map((row, i) => (
+                        <View key={i} style={styles.row}>
                                 {row.map((square, j) => {
                                     const sq = toSquare(j, i);
 
@@ -300,8 +287,7 @@ export default function GameScreen() {
                                 })}
                             </View>
                         ))}
-                    </View>
-                )}
+                </View>
 
                 {renderCaptured("w")}
             </View>

@@ -6,7 +6,7 @@ import { useGameSettings, PieceStyle } from "../context/GameSettingsContext";
 export default function SettingsScreen() {
     const [mode, setMode] = useState<"single" | "two">("two");
     const { theme, toggleTheme } = useTheme();
-    const { pieceStyle, setPieceStyle, boardMode, setBoardMode } = useGameSettings();
+    const { pieceStyle, setPieceStyle } = useGameSettings();
 
     const isDark = theme === "dark";
 
@@ -65,30 +65,6 @@ export default function SettingsScreen() {
                 <Text style={isDark && styles.darkText}>
                     Two Player
                 </Text>
-            </TouchableOpacity>
-
-            <Text style={[styles.sectionTitle, isDark && styles.darkText, { marginTop: 20 }]}>Board Perspective</Text>
-            
-            <TouchableOpacity
-                style={[
-                    styles.option,
-                    boardMode === "2d" && styles.selected,
-                    isDark && styles.optionDark,
-                ]}
-                onPress={() => setBoardMode("2d")}
-            >
-                <Text style={isDark && styles.darkText}>2D Top-Down</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-                style={[
-                    styles.option,
-                    boardMode === "3d" && styles.selected,
-                    isDark && styles.optionDark,
-                ]}
-                onPress={() => setBoardMode("3d")}
-            >
-                <Text style={isDark && styles.darkText}>3D Interactive</Text>
             </TouchableOpacity>
 
             <Text style={[styles.sectionTitle, isDark && styles.darkText, { marginTop: 20 }]}>Piece Style</Text>
