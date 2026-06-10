@@ -13,10 +13,19 @@ export function useThemeStyles() {
             background: isDark ? "#121212" : "#ffffff",
             text: isDark ? "#ffffff" : "#000000",
 
-            lightSquare: isDark ? "#2a2a2a" : "#f0d9b5",
-            darkSquare: isDark ? "#444444" : "#b58863",
+            customBackground: isDark ? "#444444" : "#949494",
+            customLightText: "#000000",
+            customDarkText: "#ffffff",
+
+            // chess board colors (NEW)
+            lightSquare: isDark ? "#ffffff" : "#ffffff",
+            darkSquare: isDark ? "#000000" : "#000000",
 
             accent: "#2e7d32",
+
+            selected: "#4aa3ff",
+            lastMove: "rgba(255, 215, 0, 0.25)",
+            legalDot: "rgba(36, 91, 221, 0.88)",
         },
     };
 }

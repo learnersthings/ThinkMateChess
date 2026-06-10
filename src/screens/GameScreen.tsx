@@ -11,16 +11,22 @@ import {
 } from "../game/engine";
 
 import { toSquare } from "../game/square";
-import { useTheme } from "../context/ThemeContext";
+import { useThemeStyles } from "../theme/useThemeStyles";
+
+import { getPieceSymbol } from "../game/pieces";
 
 export default function GameScreen() {
-    const { theme } = useTheme();
-    const isDark = theme === "dark";
+    const { colors } = useThemeStyles();
 
     const [board, setBoard] = useState(getBoard());
     const [selected, setSelected] = useState<string | null>(null);
     const [legalMoves, setLegalMoves] = useState<string[]>([]);
     const [status, setStatus] = useState("");
+
+    const [lastMove, setLastMove] = useState<{
+        from: string;
+        to: string;
+    } | null>(null);
 
     const refresh = () => {
         setBoard([...getBoard()]);
@@ -33,6 +39,7 @@ export default function GameScreen() {
             setSelected(null);
             setLegalMoves([]);
             setStatus("");
+            setLastMove(null);
         }, [])
     );
 
@@ -41,6 +48,7 @@ export default function GameScreen() {
         const piece = board[row][col];
         const turn = getTurn();
 
+        // SELECT
         if (!selected) {
             if (!piece) return;
             if (piece.color !== turn) return;
@@ -51,12 +59,14 @@ export default function GameScreen() {
             return;
         }
 
+        // UNSELECT
         if (selected === square) {
             setSelected(null);
             setLegalMoves([]);
             return;
         }
 
+        // SWITCH PIECE
         if (piece && piece.color === turn) {
             setSelected(square);
             setLegalMoves(getLegalMoves(square).map((m) => m.to));
@@ -64,11 +74,17 @@ export default function GameScreen() {
             return;
         }
 
+        // MOVE
         const result = makeMove(selected, square);
 
         if (result.isValid) {
             refresh();
             setStatus(`${selected} → ${square}`);
+
+            setLastMove({
+                from: selected,
+                to: square,
+            });
         } else {
             setStatus("Invalid move");
         }
@@ -77,61 +93,100 @@ export default function GameScreen() {
         setLegalMoves([]);
     };
 
+    const isLightSquare = (i: number, j: number) => (i + j) % 2 === 0;
+
+    const isLegalMove = (sq: string) => legalMoves.includes(sq);
+
+    const isLastMove = (sq: string) =>
+        lastMove?.from === sq || lastMove?.to === sq;
+
     return (
         <View
             style={[
                 styles.container,
-                isDark ? styles.darkBg : styles.lightBg,
+                { backgroundColor: colors.customBackground },
             ]}
         >
-            <Text style={[styles.title, isDark && styles.darkText]}>
+            <Text style={[styles.title, { color: colors.text }]}>
                 ♟ ThinkMate Chess
             </Text>
 
-            <Text style={[styles.status, isDark && styles.darkText]}>
+            <Text style={[styles.status, { color: colors.text }]}>
                 {status}
             </Text>
 
-            {board.map((row, i) => (
-                <View key={i} style={styles.row}>
-                    {row.map((square, j) => {
-                        const sq = toSquare(j, i);
+            <View style={styles.board}>
+                {board.map((row, i) => (
+                    <View key={i} style={styles.row}>
+                        {row.map((square, j) => {
+                            const sq = toSquare(j, i);
 
-                        const piece = square?.type
-                            ? `${square.color}${square.type}`
-                            : "";
+                            const piece = square?.type
+                                ? getPieceSymbol(`${square.color}${square.type}`)
+                                : "";
 
-                        const isSelected = selected === sq;
-                        const isLegal = legalMoves.includes(sq);
+                            const selectedStyle = selected === sq;
+                            const legal = isLegalMove(sq);
+                            const last = isLastMove(sq);
 
-                        const isLightSquare = (i + j) % 2 === 0;
+                            return (
+                                <TouchableOpacity
+                                    key={j}
+                                    onPress={() => handlePress(i, j)}
+                                    style={[
+                                        styles.square,
 
-                        return (
-                            <TouchableOpacity
-                                key={j}
-                                style={[
-                                    styles.square,
-                                    isLightSquare
-                                        ? isDark
-                                            ? styles.darkLightSquare
-                                            : styles.lightSquare
-                                        : isDark
-                                            ? styles.darkDarkSquare
-                                            : styles.darkSquare,
+                                        // THEME-BASED COLORS (NO HARD CODE)
+                                        {
+                                            backgroundColor: isLightSquare(i, j)
+                                                ? colors.lightSquare
+                                                : colors.darkSquare,
+                                        },
 
-                                    isSelected && styles.selected,
-                                    isLegal && styles.legal,
-                                ]}
-                                onPress={() => handlePress(i, j)}
-                            >
-                                <Text style={styles.piece}>
-                                    {piece}
-                                </Text>
-                            </TouchableOpacity>
-                        );
-                    })}
-                </View>
-            ))}
+                                        // selected
+                                        selectedStyle && {
+                                            borderWidth: 2,
+                                            borderColor: colors.selected,
+                                        },
+
+                                        // last move
+                                        last && {
+                                            backgroundColor: colors.lastMove,
+                                        },
+                                    ]}
+                                >
+                                    <Text
+                                        style={[
+                                            styles.piece,
+                                            {
+                                                color: isLightSquare(i, j)
+                                                    ? colors.customLightText
+                                                    : colors.customDarkText,
+                                            },
+                                        ]}
+                                    >
+                                        {piece}
+                                    </Text>
+
+                                    {/* LEGAL MOVE DOT */}
+                                    {legal && !square?.type && (
+                                        <View
+                                            style={{
+                                                width: 10,
+                                                height: 10,
+                                                borderRadius: 5,
+                                                backgroundColor:
+                                                    colors.legalDot,
+                                                position: "absolute",
+                                            }}
+                                        />
+                                    )}
+                                </TouchableOpacity>
+                            );
+                        })}
+                    </View>
+                ))}
+            </View>
         </View>
     );
 }
@@ -139,30 +194,23 @@ export default function GameScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: "center",
         alignItems: "center",
-    },
-
-    lightBg: {
-        backgroundColor: "#ffffff",
-    },
-
-    darkBg: {
-        backgroundColor: "#121212",
+        paddingTop: 20,
     },
 
     title: {
         fontSize: 22,
         fontWeight: "bold",
-        marginBottom: 8,
     },
 
     status: {
         marginBottom: 10,
     },
 
-    darkText: {
-        color: "#ffffff",
+    board: {
+        marginTop: 10,
+        borderRadius: 10,
+        overflow: "hidden",
     },
 
     row: {
@@ -170,38 +218,13 @@ const styles = StyleSheet.create({
     },
 
     square: {
-        width: 45,
-        height: 45,
+        width: 44,
+        height: 44,
         justifyContent: "center",
         alignItems: "center",
     },
 
-    lightSquare: {
-        backgroundColor: "#f0d9b5",
-    },
-
-    darkSquare: {
-        backgroundColor: "#b58863",
-    },
-
-    darkLightSquare: {
-        backgroundColor: "#2a2a2a",
-    },
-
-    darkDarkSquare: {
-        backgroundColor: "#444444",
-    },
-
-    selected: {
-        borderWidth: 2,
-        borderColor: "#2e7d32",
-    },
-
-    legal: {
-        backgroundColor: "rgba(0,255,0,0.25)",
-    },
-
     piece: {
-        fontSize: 18,
+        fontSize: 28,
     },
 });
