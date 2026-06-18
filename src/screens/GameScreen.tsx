@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Image, Modal, Alert } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Image, Modal, Alert, Dimensions } from "react-native";
+import { BlurView } from 'expo-blur';
 import { useFocusEffect } from "@react-navigation/native";
 
 import {
@@ -27,9 +28,10 @@ import { getPieceAssetSource } from "../game/pieceAssets";
 import { playSound } from "../game/sounds";
 
 export default function GameScreen() {
-    const { colors, getBoardColors } = useThemeStyles();
     const { pieceStyle, gameMode, playerColor } = useGameSettings();
+    const { colors, getBoardColors, isDark } = useThemeStyles();
     const boardColors = getBoardColors(pieceStyle);
+    const { width, height } = Dimensions.get("window");
 
     const [board, setBoard] = useState(getBoard());
     const [selected, setSelected] = useState<string | null>(null);
@@ -138,7 +140,7 @@ export default function GameScreen() {
                             playSound('gameover');
                         } else if (isCheck()) {
                             playSound('check');
-                        } else if (result.move.captured) {
+                        } else if (result.move?.captured) {
                             playSound('capture');
                         } else {
                             playSound('move');
@@ -190,7 +192,7 @@ export default function GameScreen() {
                 playSound('gameover');
             } else if (isCheck()) {
                 playSound('check');
-            } else if (result.move.captured) {
+            } else if (result.move?.captured) {
                 playSound('capture');
             } else {
                 playSound('move');
@@ -255,13 +257,127 @@ export default function GameScreen() {
     const isLastMove = (sq: string) =>
         lastMove?.from === sq || lastMove?.to === sq;
 
+    const renderBoard = (isBackground = false) => {
+        return (
+            <View style={[styles.board, playerColor === "b" && { transform: [{ rotate: "180deg" }] }]}>
+                {board.map((row, i) => (
+                    <View key={i} style={styles.row}>
+                            {row.map((square, j) => {
+                                const sq = toSquare(j, i);
+
+                                let pieceContent = null;
+                                if (square?.type) {
+                                    if (pieceStyle === "symbol") {
+                                        const symbol = getPieceSymbol(`${square.color}${square.type}`);
+                                        pieceContent = (
+                                            <Text
+                                                style={[
+                                                    styles.piece,
+                                                    {
+                                                        color: isLightSquare(i, j)
+                                                            ? colors.customLightText
+                                                            : colors.customDarkText,
+                                                    },
+                                                ]}
+                                            >
+                                                {symbol}
+                                            </Text>
+                                        );
+                                    } else {
+                                        const assetSource = getPieceAssetSource(square.color, square.type, pieceStyle);
+                                        if (assetSource) {
+                                            pieceContent = (
+                                                <Image
+                                                    source={assetSource}
+                                                    style={styles.pieceImage}
+                                                    resizeMode="contain"
+                                                />
+                                            );
+                                        }
+                                    }
+                                }
+                                
+                                const legal = !isBackground && isLegalMove(sq);
+                                const isSel = !isBackground && selected === sq;
+                                const isLast = !isBackground && isLastMove(sq);
+                                const isChk = !isBackground && checkSquare === sq;
+
+                                return (
+                                    <TouchableOpacity
+                                        key={j}
+                                        style={[
+                                            styles.square,
+
+                                            // THEME-BASED COLORS (NO HARD CODE)
+                                            {
+                                                backgroundColor: isChk
+                                                    ? "rgba(255, 0, 0, 0.7)"
+                                                    : isLightSquare(i, j)
+                                                        ? boardColors.lightSquare
+                                                        : boardColors.darkSquare,
+                                            },
+
+                                            // selected
+                                            isSel && {
+                                                borderWidth: 2,
+                                                borderColor: colors.selected,
+                                            },
+
+                                            // last move
+                                            isLast && { backgroundColor: colors.lastMove },
+                                        ]}
+                                        onPress={() => !isBackground && handlePress(i, j)}
+                                        activeOpacity={isBackground ? 1 : 0.2}
+                                        disabled={isBackground}
+                                    >
+                                        <View style={playerColor === "b" ? { transform: [{ rotate: "180deg" }] } : {}}>
+                                            {pieceContent}
+                                        </View>
+
+                                        {legal && (
+                                            <View
+                                                style={{
+                                                    width: 10,
+                                                    height: 10,
+                                                    borderRadius: 5,
+                                                    backgroundColor: colors.legalDot,
+                                                    position: "absolute",
+                                                }}
+                                            />
+                                        )}
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
+                    ))}
+            </View>
+        );
+    };
+
+    // Calculate background tint overlay color based on the selected setting color
+    // We add opacity to make it an overlay.
+    const bgOverlayColor = colors.customBackground + "B3"; // ~70% opacity
+
     return (
         <View
             style={[
                 styles.container,
-                { backgroundColor: colors.customBackground },
+                { backgroundColor: "#000" }, // Fallback behind image
             ]}
         >
+            {/* DYNAMIC BACKGROUND BOARD */}
+            <View style={[StyleSheet.absoluteFill, { overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }]}>
+                <View style={{ transform: [{ scale: 2.2 }, { rotate: "15deg" }], opacity: 0.8 }}>
+                    {renderBoard(true)}
+                </View>
+                <BlurView 
+                    intensity={90} 
+                    tint={isDark ? "dark" : "light"} 
+                    style={StyleSheet.absoluteFill} 
+                />
+                {/* Apply the user's color choice as an overlay tint */}
+                <View style={[StyleSheet.absoluteFill, { backgroundColor: bgOverlayColor }]} />
+            </View>
 
 
             {/* Status text positioned absolutely at the top so it doesn't affect the exact centering of the board */}
@@ -286,94 +402,7 @@ export default function GameScreen() {
             <View style={{ justifyContent: "center", width: "100%", alignItems: "center", transform: [{ translateY: -30 }] }}>
                 {renderCaptured(playerColor === "b" ? "w" : "b")}
 
-                <View style={[styles.board, playerColor === "b" && { transform: [{ rotate: "180deg" }] }]}>
-                    {board.map((row, i) => (
-                        <View key={i} style={styles.row}>
-                                {row.map((square, j) => {
-                                    const sq = toSquare(j, i);
-
-                                    let pieceContent = null;
-                                    if (square?.type) {
-                                        if (pieceStyle === "symbol") {
-                                            const symbol = getPieceSymbol(`${square.color}${square.type}`);
-                                            pieceContent = (
-                                                <Text
-                                                    style={[
-                                                        styles.piece,
-                                                        {
-                                                            color: isLightSquare(i, j)
-                                                                ? colors.customLightText
-                                                                : colors.customDarkText,
-                                                        },
-                                                    ]}
-                                                >
-                                                    {symbol}
-                                                </Text>
-                                            );
-                                        } else {
-                                            const assetSource = getPieceAssetSource(square.color, square.type, pieceStyle);
-                                            if (assetSource) {
-                                                pieceContent = (
-                                                    <Image
-                                                        source={assetSource}
-                                                        style={styles.pieceImage}
-                                                        resizeMode="contain"
-                                                    />
-                                                );
-                                            }
-                                        }
-                                    }
-                                    
-                                    const legal = isLegalMove(sq);
-
-                                    return (
-                                        <TouchableOpacity
-                                            key={j}
-                                            style={[
-                                                styles.square,
-
-                                                // THEME-BASED COLORS (NO HARD CODE)
-                                                {
-                                                    backgroundColor: checkSquare === sq
-                                                        ? "rgba(255, 0, 0, 0.7)"
-                                                        : isLightSquare(i, j)
-                                                            ? boardColors.lightSquare
-                                                            : boardColors.darkSquare,
-                                                },
-
-                                                // selected
-                                                selected === sq && {
-                                                    borderWidth: 2,
-                                                    borderColor: colors.selected,
-                                                },
-
-                                                // last move
-                                                isLastMove(sq) && { backgroundColor: colors.lastMove },
-                                            ]}
-                                            onPress={() => handlePress(i, j)}
-                                            activeOpacity={1}
-                                        >
-                                            <View style={playerColor === "b" ? { transform: [{ rotate: "180deg" }] } : {}}>
-                                                {pieceContent}
-                                            </View>
-
-                                            {legal && (
-                                                <View
-                                                    style={{
-                                                        width: 10,
-                                                        height: 10,
-                                                        borderRadius: 5,
-                                                        backgroundColor: colors.legalDot,
-                                                        position: "absolute",
-                                                    }}
-                                                />
-                                            )}
-                                        </TouchableOpacity>
-                                    );
-                                })}
-                            </View>
-                        ))}
-                </View>
+                {renderBoard()}
 
                 {renderCaptured(playerColor === "b" ? "b" : "w")}
             </View>
