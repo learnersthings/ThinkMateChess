@@ -2,6 +2,7 @@ import React, { createContext, useState, useContext, ReactNode, useEffect } from
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export type PieceStyle = "symbol" | "3d" | "crystal" | "glass" | "wooden" | "staunton" | "california" | "merida" | "uscf" | "cardinal";
+export type Difficulty = "easy" | "medium" | "hard";
 
 interface GameSettingsContextType {
     pieceStyle: PieceStyle;
@@ -16,6 +17,8 @@ interface GameSettingsContextType {
     setShowMoves: (show: boolean) => void;
     showPoints: boolean;
     setShowPoints: (show: boolean) => void;
+    difficulty: Difficulty;
+    setDifficulty: (diff: Difficulty) => void;
 }
 
 const GameSettingsContext = createContext<GameSettingsContextType | undefined>(
@@ -29,6 +32,7 @@ export const GameSettingsProvider = ({ children }: { children: ReactNode }) => {
     const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
     const [showMoves, setShowMoves] = useState<boolean>(true);
     const [showPoints, setShowPoints] = useState<boolean>(true);
+    const [difficulty, setDifficulty] = useState<Difficulty>("easy");
 
     useEffect(() => {
         const loadSettings = async () => {
@@ -39,6 +43,7 @@ export const GameSettingsProvider = ({ children }: { children: ReactNode }) => {
                 const storedSoundEnabled = await AsyncStorage.getItem("soundEnabled");
                 const storedShowMoves = await AsyncStorage.getItem("showMoves");
                 const storedShowPoints = await AsyncStorage.getItem("showPoints");
+                const storedDifficulty = await AsyncStorage.getItem("difficulty");
 
                 if (storedPieceStyle) setPieceStyle(storedPieceStyle as PieceStyle);
                 if (storedGameMode === "single" || storedGameMode === "two") setGameMode(storedGameMode);
@@ -46,6 +51,7 @@ export const GameSettingsProvider = ({ children }: { children: ReactNode }) => {
                 if (storedSoundEnabled !== null) setSoundEnabled(storedSoundEnabled === "true");
                 if (storedShowMoves !== null) setShowMoves(storedShowMoves === "true");
                 if (storedShowPoints !== null) setShowPoints(storedShowPoints === "true");
+                if (storedDifficulty === "easy" || storedDifficulty === "medium" || storedDifficulty === "hard") setDifficulty(storedDifficulty);
             } catch (error) {
                 console.error("Error loading settings:", error);
             }
@@ -107,6 +113,15 @@ export const GameSettingsProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
+    const saveDifficulty = async (diff: Difficulty) => {
+        setDifficulty(diff);
+        try {
+            await AsyncStorage.setItem("difficulty", diff);
+        } catch (error) {
+            console.error("Error saving difficulty:", error);
+        }
+    };
+
     return (
         <GameSettingsContext.Provider value={{ 
             pieceStyle, setPieceStyle: savePieceStyle, 
@@ -114,7 +129,8 @@ export const GameSettingsProvider = ({ children }: { children: ReactNode }) => {
             playerColor, setPlayerColor: savePlayerColor,
             soundEnabled, setSoundEnabled: saveSoundEnabled,
             showMoves, setShowMoves: saveShowMoves,
-            showPoints, setShowPoints: saveShowPoints
+            showPoints, setShowPoints: saveShowPoints,
+            difficulty, setDifficulty: saveDifficulty
         }}>
             {children}
         </GameSettingsContext.Provider>

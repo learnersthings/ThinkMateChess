@@ -29,7 +29,7 @@ import { getPieceAssetSource } from "../game/pieceAssets";
 import { playSound } from "../game/sounds";
 
 export default function GameScreen({ route }: any) {
-    const { pieceStyle, gameMode, playerColor, soundEnabled, showMoves, showPoints } = useGameSettings();
+    const { pieceStyle, gameMode, playerColor, soundEnabled, showMoves, showPoints, difficulty } = useGameSettings();
     const { colors, getBoardColors, isDark } = useThemeStyles();
     const boardColors = getBoardColors(pieceStyle);
     const { width, height } = Dimensions.get("window");
@@ -151,7 +151,7 @@ export default function GameScreen({ route }: any) {
             if (turn !== playerColor) {
                 // It's the computer's turn. Wait a small delay for realism.
                 const timer = setTimeout(() => {
-                    const result = makeComputerMove();
+                    const result = makeComputerMove(difficulty);
                     if (result && result.isValid) {
                         refresh();
                         setLastMove({

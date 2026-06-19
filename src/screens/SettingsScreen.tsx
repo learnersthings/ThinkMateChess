@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Switch } from "react-native";
 import { useTheme } from "../context/ThemeContext";
-import { useGameSettings, PieceStyle } from "../context/GameSettingsContext";
+import { useGameSettings, PieceStyle, Difficulty } from "../context/GameSettingsContext";
 
 export default function SettingsScreen() {
     const { theme, toggleTheme } = useTheme();
-    const { pieceStyle, setPieceStyle, gameMode, setGameMode, playerColor, setPlayerColor, soundEnabled, setSoundEnabled, showMoves, setShowMoves, showPoints, setShowPoints } = useGameSettings();
+    const { pieceStyle, setPieceStyle, gameMode, setGameMode, playerColor, setPlayerColor, soundEnabled, setSoundEnabled, showMoves, setShowMoves, showPoints, setShowPoints, difficulty, setDifficulty } = useGameSettings();
 
     const isDark = theme === "dark";
 
@@ -83,37 +83,62 @@ export default function SettingsScreen() {
 
             {/* PLAYER COLOR (Only show if Single Player) */}
             {gameMode === "single" && (
-                <View style={styles.colorSelectorContainer}>
-                    <Text style={[styles.sectionTitle, isDark && styles.darkText]}>Play as</Text>
-                    <View style={styles.segmentedControl}>
-                        <TouchableOpacity
-                            style={[
-                                styles.segmentButton,
-                                playerColor === "w" && styles.segmentButtonActive,
-                                isDark && playerColor !== "w" && styles.optionDark
-                            ]}
-                            onPress={() => setPlayerColor("w")}
-                        >
-                            <Text style={[
-                                styles.segmentText,
-                                playerColor === "w" ? styles.segmentTextActive : (isDark && styles.darkText)
-                            ]}>White</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[
-                                styles.segmentButton,
-                                playerColor === "b" && styles.segmentButtonActive,
-                                isDark && playerColor !== "b" && styles.optionDark
-                            ]}
-                            onPress={() => setPlayerColor("b")}
-                        >
-                            <Text style={[
-                                styles.segmentText,
-                                playerColor === "b" ? styles.segmentTextActive : (isDark && styles.darkText)
-                            ]}>Black</Text>
-                        </TouchableOpacity>
+                <>
+                    <View style={styles.colorSelectorContainer}>
+                        <Text style={[styles.sectionTitle, isDark && styles.darkText]}>Play as</Text>
+                        <View style={styles.segmentedControl}>
+                            <TouchableOpacity
+                                style={[
+                                    styles.segmentButton,
+                                    playerColor === "w" && styles.segmentButtonActive,
+                                    isDark && playerColor !== "w" && styles.optionDark
+                                ]}
+                                onPress={() => setPlayerColor("w")}
+                            >
+                                <Text style={[
+                                    styles.segmentText,
+                                    playerColor === "w" ? styles.segmentTextActive : (isDark && styles.darkText)
+                                ]}>White</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[
+                                    styles.segmentButton,
+                                    playerColor === "b" && styles.segmentButtonActive,
+                                    isDark && playerColor !== "b" && styles.optionDark
+                                ]}
+                                onPress={() => setPlayerColor("b")}
+                            >
+                                <Text style={[
+                                    styles.segmentText,
+                                    playerColor === "b" ? styles.segmentTextActive : (isDark && styles.darkText)
+                                ]}>Black</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
-                </View>
+
+                    <View style={styles.colorSelectorContainer}>
+                        <Text style={[styles.sectionTitle, isDark && styles.darkText]}>Difficulty</Text>
+                        <View style={styles.segmentedControl}>
+                            {(["easy", "medium", "hard"] as Difficulty[]).map((diff) => (
+                                <TouchableOpacity
+                                    key={diff}
+                                    style={[
+                                        styles.segmentButton,
+                                        difficulty === diff && styles.segmentButtonActive,
+                                        isDark && difficulty !== diff && styles.optionDark
+                                    ]}
+                                    onPress={() => setDifficulty(diff)}
+                                >
+                                    <Text style={[
+                                        styles.segmentText,
+                                        { fontSize: 14 },
+                                        difficulty === diff ? styles.segmentTextActive : (isDark && styles.darkText)
+                                    ]}>{diff.charAt(0).toUpperCase() + diff.slice(1)}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
+                    </View>
+                </>
             )}
 
             <Text style={[styles.sectionTitle, isDark && styles.darkText, { marginTop: 20 }]}>Piece Style</Text>

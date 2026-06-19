@@ -36,35 +36,103 @@ export function isPromotionMove(from: string, to: string) {
     return moves.some(m => m.from === from && m.to === to && m.promotion);
 }
 
-export function makeComputerMove() {
+export function evaluateBoard(chess: Chess): number {
+    const board = chess.board();
+    let score = 0;
+    const pieceValues: Record<string, number> = { p: 10, n: 30, b: 30, r: 50, q: 90, k: 900 };
+    for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
+            const piece = board[i][j];
+            if (piece) {
+                const val = pieceValues[piece.type] || 0;
+                score += piece.color === 'w' ? val : -val;
+            }
+        }
+    }
+    return score;
+}
+
+export function minimax(chess: Chess, depth: number, alpha: number, beta: number, isMaximizing: boolean): number {
+    if (depth === 0 || chess.isGameOver()) {
+        return evaluateBoard(chess);
+    }
+
+    const moves = chess.moves();
+
+    if (isMaximizing) {
+        let bestVal = -Infinity;
+        for (let i = 0; i < moves.length; i++) {
+            chess.move(moves[i]);
+            bestVal = Math.max(bestVal, minimax(chess, depth - 1, alpha, beta, !isMaximizing));
+            chess.undo();
+            alpha = Math.max(alpha, bestVal);
+            if (beta <= alpha) break;
+        }
+        return bestVal;
+    } else {
+        let bestVal = Infinity;
+        for (let i = 0; i < moves.length; i++) {
+            chess.move(moves[i]);
+            bestVal = Math.min(bestVal, minimax(chess, depth - 1, alpha, beta, !isMaximizing));
+            chess.undo();
+            beta = Math.min(beta, bestVal);
+            if (beta <= alpha) break;
+        }
+        return bestVal;
+    }
+}
+
+export function makeComputerMove(difficulty: "easy" | "medium" | "hard" = "easy") {
     const moves = game.moves({ verbose: true }) as any[];
     if (moves.length === 0) return null;
 
-    const pieceValues: Record<string, number> = { q: 9, r: 5, b: 3, n: 3, p: 1 };
-    
     let bestMove = null;
-    let bestScore = -1;
 
-    for (const move of moves) {
-        let score = 0;
-        if (move.captured) {
-            score = pieceValues[move.captured] || 1;
+    if (difficulty === "easy") {
+        const pieceValues: Record<string, number> = { q: 9, r: 5, b: 3, n: 3, p: 1 };
+        let bestScore = -1;
+        for (const move of moves) {
+            let score = 0;
+            if (move.captured) score = pieceValues[move.captured] || 1;
+            if (move.promotion) score += 8; 
+            score += Math.random() * 0.5;
+
+            if (score > bestScore) {
+                bestScore = score;
+                bestMove = move;
+            }
+        }
+        if (!bestMove) bestMove = moves[Math.floor(Math.random() * moves.length)];
+    } else {
+        const depth = difficulty === "medium" ? 2 : 3;
+        const isMaximizing = game.turn() === 'w';
+        
+        let bestVal = isMaximizing ? -Infinity : Infinity;
+        let bestMoves = [];
+
+        for (const move of moves) {
+            game.move(move.san);
+            const val = minimax(game, depth - 1, -Infinity, Infinity, !isMaximizing);
+            game.undo();
+
+            if (isMaximizing) {
+                if (val > bestVal) {
+                    bestVal = val;
+                    bestMoves = [move];
+                } else if (val === bestVal) {
+                    bestMoves.push(move);
+                }
+            } else {
+                if (val < bestVal) {
+                    bestVal = val;
+                    bestMoves = [move];
+                } else if (val === bestVal) {
+                    bestMoves.push(move);
+                }
+            }
         }
         
-        if (move.promotion) {
-            score += 8; 
-        }
-
-        score += Math.random() * 0.5;
-
-        if (score > bestScore) {
-            bestScore = score;
-            bestMove = move;
-        }
-    }
-
-    if (!bestMove) {
-        bestMove = moves[Math.floor(Math.random() * moves.length)];
+        bestMove = bestMoves[Math.floor(Math.random() * bestMoves.length)];
     }
 
     const result = game.move(bestMove.san);
