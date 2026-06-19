@@ -5,7 +5,7 @@ import { useGameSettings, PieceStyle } from "../context/GameSettingsContext";
 
 export default function SettingsScreen() {
     const { theme, toggleTheme } = useTheme();
-    const { pieceStyle, setPieceStyle, gameMode, setGameMode, playerColor, setPlayerColor, soundEnabled, setSoundEnabled, showMoves, setShowMoves } = useGameSettings();
+    const { pieceStyle, setPieceStyle, gameMode, setGameMode, playerColor, setPlayerColor, soundEnabled, setSoundEnabled, showMoves, setShowMoves, showPoints, setShowPoints } = useGameSettings();
 
     const isDark = theme === "dark";
 
@@ -67,6 +67,17 @@ export default function SettingsScreen() {
                     onValueChange={setShowMoves}
                     trackColor={{ false: "#767577", true: "#2e7d32" }}
                     thumbColor={showMoves ? "#ffffff" : "#f4f3f4"}
+                />
+            </View>
+
+            {/* SHOW POINTS TOGGLE */}
+            <View style={styles.toggleRow}>
+                <Text style={[styles.toggleLabel, isDark && styles.darkText]}>Show Points</Text>
+                <Switch
+                    value={showPoints}
+                    onValueChange={setShowPoints}
+                    trackColor={{ false: "#767577", true: "#2e7d32" }}
+                    thumbColor={showPoints ? "#ffffff" : "#f4f3f4"}
                 />
             </View>
 

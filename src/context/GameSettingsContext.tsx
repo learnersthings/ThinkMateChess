@@ -14,6 +14,8 @@ interface GameSettingsContextType {
     setSoundEnabled: (enabled: boolean) => void;
     showMoves: boolean;
     setShowMoves: (show: boolean) => void;
+    showPoints: boolean;
+    setShowPoints: (show: boolean) => void;
 }
 
 const GameSettingsContext = createContext<GameSettingsContextType | undefined>(
@@ -26,6 +28,7 @@ export const GameSettingsProvider = ({ children }: { children: ReactNode }) => {
     const [playerColor, setPlayerColor] = useState<"w" | "b">("w");
     const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
     const [showMoves, setShowMoves] = useState<boolean>(true);
+    const [showPoints, setShowPoints] = useState<boolean>(true);
 
     useEffect(() => {
         const loadSettings = async () => {
@@ -35,12 +38,14 @@ export const GameSettingsProvider = ({ children }: { children: ReactNode }) => {
                 const storedPlayerColor = await AsyncStorage.getItem("playerColor");
                 const storedSoundEnabled = await AsyncStorage.getItem("soundEnabled");
                 const storedShowMoves = await AsyncStorage.getItem("showMoves");
+                const storedShowPoints = await AsyncStorage.getItem("showPoints");
 
                 if (storedPieceStyle) setPieceStyle(storedPieceStyle as PieceStyle);
                 if (storedGameMode === "single" || storedGameMode === "two") setGameMode(storedGameMode);
                 if (storedPlayerColor === "w" || storedPlayerColor === "b") setPlayerColor(storedPlayerColor);
                 if (storedSoundEnabled !== null) setSoundEnabled(storedSoundEnabled === "true");
                 if (storedShowMoves !== null) setShowMoves(storedShowMoves === "true");
+                if (storedShowPoints !== null) setShowPoints(storedShowPoints === "true");
             } catch (error) {
                 console.error("Error loading settings:", error);
             }
@@ -93,13 +98,23 @@ export const GameSettingsProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
+    const saveShowPoints = async (show: boolean) => {
+        setShowPoints(show);
+        try {
+            await AsyncStorage.setItem("showPoints", show.toString());
+        } catch (error) {
+            console.error("Error saving showPoints:", error);
+        }
+    };
+
     return (
         <GameSettingsContext.Provider value={{ 
             pieceStyle, setPieceStyle: savePieceStyle, 
             gameMode, setGameMode: saveGameMode, 
             playerColor, setPlayerColor: savePlayerColor,
             soundEnabled, setSoundEnabled: saveSoundEnabled,
-            showMoves, setShowMoves: saveShowMoves
+            showMoves, setShowMoves: saveShowMoves,
+            showPoints, setShowPoints: saveShowPoints
         }}>
             {children}
         </GameSettingsContext.Provider>

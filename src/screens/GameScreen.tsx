@@ -17,6 +17,7 @@ import {
     getKingSquare,
     makeComputerMove,
     undoMove,
+    game
 } from "../game/engine";
 
 import { toSquare } from "../game/square";
@@ -28,7 +29,7 @@ import { getPieceAssetSource } from "../game/pieceAssets";
 import { playSound } from "../game/sounds";
 
 export default function GameScreen({ route }: any) {
-    const { pieceStyle, gameMode, playerColor, soundEnabled, showMoves } = useGameSettings();
+    const { pieceStyle, gameMode, playerColor, soundEnabled, showMoves, showPoints } = useGameSettings();
     const { colors, getBoardColors, isDark } = useThemeStyles();
     const boardColors = getBoardColors(pieceStyle);
     const { width, height } = Dimensions.get("window");
@@ -68,7 +69,25 @@ export default function GameScreen({ route }: any) {
         if (isGameOver()) {
             const reason = getGameOverReason();
             const winner = reason === "Checkmate" ? (turn === 'w' ? `${displayBlack} Wins!` : `${displayWhite} Wins!`) : "";
-            setGameOverText(`${reason}${winner ? `\n${winner}` : ''}`);
+            const captured = getCapturedPieces();
+            const pieceValues: Record<string, number> = { q: 9, r: 5, b: 3, n: 3, p: 1 };
+            const calculateScore = (pieces: string[]) => pieces.reduce((sum, p) => sum + (pieceValues[p] || 0), 0);
+            
+            const history = game.history({ verbose: true }) as any[];
+            let wPromo = 0;
+            let bPromo = 0;
+            for (const m of history) {
+                if (m.promotion) {
+                    const gain = (pieceValues[m.promotion] || 0) - 1;
+                    if (m.color === 'w') wPromo += gain;
+                    else bPromo += gain;
+                }
+            }
+
+            const whiteScore = 39 - calculateScore(captured.w) + wPromo;
+            const blackScore = 39 - calculateScore(captured.b) + bPromo;
+            const scoreText = `\n${displayWhite}'s Points: ${whiteScore}/39 | ${displayBlack}'s Points: ${blackScore}/39`;
+            setGameOverText(`${reason}${winner ? `\n${winner}` : ''}${scoreText}`);
             currentStatus = "Game Over";
         } else {
             setGameOverText(null);
@@ -164,22 +183,46 @@ export default function GameScreen({ route }: any) {
 
     const renderCaptured = (color: "w" | "b") => {
         const pieces = captured[color];
+        
+        const pieceValues: Record<string, number> = { q: 9, r: 5, b: 3, n: 3, p: 1 };
+        
+        const history = game.history({ verbose: true }) as any[];
+        const playerWhoCaptured = color === "w" ? "b" : "w";
+        
+        const lostPieces = captured[playerWhoCaptured];
+        const lostScore = lostPieces.reduce((sum, p) => sum + (pieceValues[p] || 0), 0);
+        
+        let promoScore = 0;
+        for (const m of history) {
+            if (m.promotion && m.color === playerWhoCaptured) {
+                promoScore += (pieceValues[m.promotion] || 0) - 1;
+            }
+        }
+        
+        const currentScore = 39 - lostScore + promoScore;
+        const displayName = playerWhoCaptured === "w" ? displayWhite : displayBlack;
+        
         return (
-            <View style={styles.capturedContainer}>
-                {pieces.map((p, i) => {
-                    if (pieceStyle === "symbol") {
-                        return (
-                            <Text key={i} style={[styles.capturedSymbol, { color: color === "w" ? "#dddddd" : "#222222" }]}>
-                                {getPieceSymbol(color + p)}
-                            </Text>
-                        );
-                    } else {
-                        const src = getPieceAssetSource(color, p, pieceStyle);
-                        return src ? (
-                            <Image key={i} source={src} style={styles.capturedImage} resizeMode="contain" />
-                        ) : null;
-                    }
-                })}
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", width: 8 * 44, marginVertical: 10, paddingHorizontal: 5 }}>
+                <View style={{ flexDirection: "row", flexWrap: "wrap", flex: 1 }}>
+                    {pieces.map((p, i) => {
+                        if (pieceStyle === "symbol") {
+                            return (
+                                <Text key={i} style={[styles.capturedSymbol, { color: color === "w" ? "#dddddd" : "#222222" }]}>
+                                    {getPieceSymbol(color + p)}
+                                </Text>
+                            );
+                        } else {
+                            const src = getPieceAssetSource(color, p, pieceStyle);
+                            return src ? (
+                                <Image key={i} source={src} style={styles.capturedImage} resizeMode="contain" />
+                            ) : null;
+                        }
+                    })}
+                </View>
+                {showPoints && (
+                    <Text style={[styles.scoreText, { color: colors.text, textAlign: "right" }]}>{displayName}'s Points: {currentScore}/39</Text>
+                )}
             </View>
         );
     };
@@ -544,6 +587,12 @@ const styles = StyleSheet.create({
         width: 28,
         height: 28,
         marginRight: 4,
+    },
+
+    scoreText: {
+        fontSize: 16,
+        fontWeight: "bold",
+        marginLeft: 8,
     },
 
     promotionOverlay: {
