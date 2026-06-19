@@ -28,7 +28,7 @@ import { getPieceAssetSource } from "../game/pieceAssets";
 import { playSound } from "../game/sounds";
 
 export default function GameScreen({ route }: any) {
-    const { pieceStyle, gameMode, playerColor } = useGameSettings();
+    const { pieceStyle, gameMode, playerColor, soundEnabled } = useGameSettings();
     const { colors, getBoardColors, isDark } = useThemeStyles();
     const boardColors = getBoardColors(pieceStyle);
     const { width, height } = Dimensions.get("window");
@@ -140,14 +140,16 @@ export default function GameScreen({ route }: any) {
                             to: result.move.to,
                         });
                         
-                        if (isGameOver()) {
-                            playSound('gameover');
-                        } else if (isCheck()) {
-                            playSound('check');
-                        } else if (result.move?.captured) {
-                            playSound('capture');
-                        } else {
-                            playSound('move');
+                        if (soundEnabled) {
+                            if (isGameOver()) {
+                                playSound('gameover');
+                            } else if (isCheck()) {
+                                playSound('check');
+                            } else if (result.move?.captured) {
+                                playSound('capture');
+                            } else {
+                                playSound('move');
+                            }
                         }
 
                         updateGameStatus();
@@ -192,14 +194,16 @@ export default function GameScreen({ route }: any) {
                 to,
             });
 
-            if (isGameOver()) {
-                playSound('gameover');
-            } else if (isCheck()) {
-                playSound('check');
-            } else if (result.move?.captured) {
-                playSound('capture');
-            } else {
-                playSound('move');
+            if (soundEnabled) {
+                if (isGameOver()) {
+                    playSound('gameover');
+                } else if (isCheck()) {
+                    playSound('check');
+                } else if (result.move?.captured) {
+                    playSound('capture');
+                } else {
+                    playSound('move');
+                }
             }
 
             updateGameStatus();

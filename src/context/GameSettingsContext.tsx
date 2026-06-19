@@ -10,6 +10,8 @@ interface GameSettingsContextType {
     setGameMode: (mode: "single" | "two") => void;
     playerColor: "w" | "b";
     setPlayerColor: (color: "w" | "b") => void;
+    soundEnabled: boolean;
+    setSoundEnabled: (enabled: boolean) => void;
 }
 
 const GameSettingsContext = createContext<GameSettingsContextType | undefined>(
@@ -20,6 +22,7 @@ export const GameSettingsProvider = ({ children }: { children: ReactNode }) => {
     const [pieceStyle, setPieceStyle] = useState<PieceStyle>("symbol");
     const [gameMode, setGameMode] = useState<"single" | "two">("two");
     const [playerColor, setPlayerColor] = useState<"w" | "b">("w");
+    const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
 
     useEffect(() => {
         const loadSettings = async () => {
@@ -27,10 +30,12 @@ export const GameSettingsProvider = ({ children }: { children: ReactNode }) => {
                 const storedPieceStyle = await AsyncStorage.getItem("pieceStyle");
                 const storedGameMode = await AsyncStorage.getItem("gameMode");
                 const storedPlayerColor = await AsyncStorage.getItem("playerColor");
+                const storedSoundEnabled = await AsyncStorage.getItem("soundEnabled");
 
                 if (storedPieceStyle) setPieceStyle(storedPieceStyle as PieceStyle);
                 if (storedGameMode === "single" || storedGameMode === "two") setGameMode(storedGameMode);
                 if (storedPlayerColor === "w" || storedPlayerColor === "b") setPlayerColor(storedPlayerColor);
+                if (storedSoundEnabled !== null) setSoundEnabled(storedSoundEnabled === "true");
             } catch (error) {
                 console.error("Error loading settings:", error);
             }
@@ -65,11 +70,21 @@ export const GameSettingsProvider = ({ children }: { children: ReactNode }) => {
         }
     };
 
+    const saveSoundEnabled = async (enabled: boolean) => {
+        setSoundEnabled(enabled);
+        try {
+            await AsyncStorage.setItem("soundEnabled", enabled.toString());
+        } catch (error) {
+            console.error("Error saving soundEnabled:", error);
+        }
+    };
+
     return (
         <GameSettingsContext.Provider value={{ 
             pieceStyle, setPieceStyle: savePieceStyle, 
             gameMode, setGameMode: saveGameMode, 
-            playerColor, setPlayerColor: savePlayerColor 
+            playerColor, setPlayerColor: savePlayerColor,
+            soundEnabled, setSoundEnabled: saveSoundEnabled
         }}>
             {children}
         </GameSettingsContext.Provider>
