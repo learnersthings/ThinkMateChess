@@ -22,7 +22,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.generaluse.ThinkMateChess"
+      "package": "com.thinkmatechess.ThinkMateChess"
     },
     "web": {
       "favicon": "./assets/favicon.png"
