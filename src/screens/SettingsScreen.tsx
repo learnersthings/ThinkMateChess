@@ -5,7 +5,7 @@ import { useGameSettings, PieceStyle } from "../context/GameSettingsContext";
 
 export default function SettingsScreen() {
     const { theme, toggleTheme } = useTheme();
-    const { pieceStyle, setPieceStyle, gameMode, setGameMode, playerColor, setPlayerColor, soundEnabled, setSoundEnabled } = useGameSettings();
+    const { pieceStyle, setPieceStyle, gameMode, setGameMode, playerColor, setPlayerColor, soundEnabled, setSoundEnabled, showMoves, setShowMoves } = useGameSettings();
 
     const isDark = theme === "dark";
 
@@ -56,6 +56,17 @@ export default function SettingsScreen() {
                     onValueChange={setSoundEnabled}
                     trackColor={{ false: "#767577", true: "#2e7d32" }}
                     thumbColor={soundEnabled ? "#ffffff" : "#f4f3f4"}
+                />
+            </View>
+
+            {/* SHOW MOVES TOGGLE */}
+            <View style={styles.toggleRow}>
+                <Text style={[styles.toggleLabel, isDark && styles.darkText]}>Show Moves / Highlights</Text>
+                <Switch
+                    value={showMoves}
+                    onValueChange={setShowMoves}
+                    trackColor={{ false: "#767577", true: "#2e7d32" }}
+                    thumbColor={showMoves ? "#ffffff" : "#f4f3f4"}
                 />
             </View>
 

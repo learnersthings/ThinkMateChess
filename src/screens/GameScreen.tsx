@@ -28,7 +28,7 @@ import { getPieceAssetSource } from "../game/pieceAssets";
 import { playSound } from "../game/sounds";
 
 export default function GameScreen({ route }: any) {
-    const { pieceStyle, gameMode, playerColor, soundEnabled } = useGameSettings();
+    const { pieceStyle, gameMode, playerColor, soundEnabled, showMoves } = useGameSettings();
     const { colors, getBoardColors, isDark } = useThemeStyles();
     const boardColors = getBoardColors(pieceStyle);
     const { width, height } = Dimensions.get("window");
@@ -305,10 +305,10 @@ export default function GameScreen({ route }: any) {
                                     }
                                 }
                                 
-                                const legal = !isBackground && isLegalMove(sq);
+                                const legal = !isBackground && showMoves && isLegalMove(sq);
                                 const isSel = !isBackground && selected === sq;
-                                const isLast = !isBackground && isLastMove(sq);
-                                const isChk = !isBackground && checkSquare === sq;
+                                const isLast = !isBackground && showMoves && isLastMove(sq);
+                                const isChk = !isBackground && showMoves && checkSquare === sq;
 
                                 return (
                                     <TouchableOpacity
