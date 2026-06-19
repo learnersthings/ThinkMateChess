@@ -27,7 +27,7 @@ import { useGameSettings } from "../context/GameSettingsContext";
 import { getPieceAssetSource } from "../game/pieceAssets";
 import { playSound } from "../game/sounds";
 
-export default function GameScreen() {
+export default function GameScreen({ route }: any) {
     const { pieceStyle, gameMode, playerColor } = useGameSettings();
     const { colors, getBoardColors, isDark } = useThemeStyles();
     const boardColors = getBoardColors(pieceStyle);
@@ -57,13 +57,17 @@ export default function GameScreen() {
         }, [])
     );
 
+    const { whiteName, blackName } = route?.params || {};
+    const displayWhite = whiteName?.trim() || "White";
+    const displayBlack = blackName?.trim() || "Black";
+
     const updateGameStatus = () => {
         const turn = getTurn();
-        let currentStatus = turn === "w" ? "White's Turn" : "Black's Turn";
+        let currentStatus = turn === "w" ? `${displayWhite}'s Turn` : `${displayBlack}'s Turn`;
 
         if (isGameOver()) {
             const reason = getGameOverReason();
-            const winner = reason === "Checkmate" ? (turn === 'w' ? "Black Wins!" : "White Wins!") : "";
+            const winner = reason === "Checkmate" ? (turn === 'w' ? `${displayBlack} Wins!` : `${displayWhite} Wins!`) : "";
             setGameOverText(`${reason}${winner ? `\n${winner}` : ''}`);
             currentStatus = "Game Over";
         } else {
