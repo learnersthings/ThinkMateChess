@@ -98,7 +98,7 @@ export default function HomeScreen({ navigation }: any) {
                     <TouchableOpacity
                         style={[
                             styles.button,
-                            { backgroundColor: colors.accent },
+                            { backgroundColor: colors.accent, marginBottom: 15 },
                         ]}
                         onPress={handlePlayClick}
                     >
@@ -109,7 +109,7 @@ export default function HomeScreen({ navigation }: any) {
                 <TouchableOpacity
                     style={[
                         styles.button,
-                        { backgroundColor: colors.accent },
+                        { backgroundColor: colors.accent, marginBottom: 15 },
                     ]}
                     onPress={handlePlayClick}
                 >
@@ -117,6 +117,15 @@ export default function HomeScreen({ navigation }: any) {
                 </TouchableOpacity>
             )}
 
+            <TouchableOpacity
+                style={[
+                    styles.button,
+                    { backgroundColor: colors.accent },
+                ]}
+                onPress={() => navigation.navigate("Rules")}
+            >
+                <Text style={styles.buttonText}>Chess Rules</Text>
+            </TouchableOpacity>
             <Modal
                 transparent={true}
                 visible={modalVisible}
