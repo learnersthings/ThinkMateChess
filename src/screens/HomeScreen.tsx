@@ -1,7 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Modal, TextInput } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
 import { useThemeStyles } from "../theme/useThemeStyles";
 import { useGameSettings } from "../context/GameSettingsContext";
+import { game, isGameOver, resetGame } from "../game/engine";
 
 export default function HomeScreen({ navigation }: any) {
     const { colors } = useThemeStyles();
@@ -10,6 +12,13 @@ export default function HomeScreen({ navigation }: any) {
     const [modalVisible, setModalVisible] = useState(false);
     const [name1, setName1] = useState("");
     const [name2, setName2] = useState("");
+    const [hasOngoingGame, setHasOngoingGame] = useState(false);
+
+    useFocusEffect(
+        useCallback(() => {
+            setHasOngoingGame(game.history().length > 0 && !isGameOver());
+        }, [])
+    );
 
     const handlePlayClick = () => {
         setModalVisible(true);
@@ -17,7 +26,28 @@ export default function HomeScreen({ navigation }: any) {
         setName2("");
     };
 
+    const handleResumeGame = () => {
+        let whiteName = "";
+        let blackName = "";
+
+        if (gameMode === "single") {
+            if (playerColor === "w") {
+                whiteName = name1;
+                blackName = "Computer";
+            } else {
+                blackName = name1;
+                whiteName = "Computer";
+            }
+        } else {
+            whiteName = name1;
+            blackName = name2;
+        }
+
+        navigation.navigate("Game", { whiteName, blackName });
+    };
+
     const startGame = () => {
+        resetGame();
         setModalVisible(false);
         let whiteName = "";
         let blackName = "";
@@ -54,15 +84,38 @@ export default function HomeScreen({ navigation }: any) {
                 ♟ ThinkMate Chess
             </Text>
 
-            <TouchableOpacity
-                style={[
-                    styles.button,
-                    { backgroundColor: colors.accent },
-                ]}
-                onPress={handlePlayClick}
-            >
-                <Text style={styles.buttonText}>Play</Text>
-            </TouchableOpacity>
+            {hasOngoingGame ? (
+                <>
+                    <TouchableOpacity
+                        style={[
+                            styles.button,
+                            { backgroundColor: colors.accent, marginBottom: 15 },
+                        ]}
+                        onPress={handleResumeGame}
+                    >
+                        <Text style={styles.buttonText}>Resume Game</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[
+                            styles.button,
+                            { backgroundColor: colors.accent },
+                        ]}
+                        onPress={handlePlayClick}
+                    >
+                        <Text style={styles.buttonText}>New Game</Text>
+                    </TouchableOpacity>
+                </>
+            ) : (
+                <TouchableOpacity
+                    style={[
+                        styles.button,
+                        { backgroundColor: colors.accent },
+                    ]}
+                    onPress={handlePlayClick}
+                >
+                    <Text style={styles.buttonText}>Play</Text>
+                </TouchableOpacity>
+            )}
 
             <Modal
                 transparent={true}
